@@ -1,5 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineString, defineSecret } = require("firebase-functions/params");
+const { defineString } = require("firebase-functions/params");
 const {
   SignedDataVerifier,
   Environment,
@@ -16,13 +16,23 @@ const appleEnvironment = defineString("APPLE_ENVIRONMENT", {
 });
 const appleAppId = "YOUR_APP_ID";
 
-// Bind Apple API auth secrets so downstream modules (e.g., sendConsumptionData.js) can read them
-const appleKeyId = defineSecret("APPLE_KEY_ID");
-const appleIssuerId = defineSecret("APPLE_ISSUER_ID");
-const applePrivateKey = defineSecret("APPLE_PRIVATE_KEY");
+// Apple App Store Server API + RevenueCat: set on the function runtime (Cloud Console → env vars),
+// or in `functions/.env` for local emulation. `APPLE_PRIVATE_KEY` is base64-encoded PKCS8 PEM bytes.
+function appleAuthFromEnv() {
+  const keyId = process.env.APPLE_KEY_ID;
+  const issuerId = process.env.APPLE_ISSUER_ID;
+  const privateKeyB64 = process.env.APPLE_PRIVATE_KEY;
+  if (!keyId || !issuerId || !privateKeyB64) return null;
+  return {
+    keyId,
+    issuerId,
+    privateKey: Buffer.from(privateKeyB64, "base64").toString("utf8"),
+  };
+}
 
-// RevenueCat API configuration
-const revenueCatApiKey = defineSecret("REVENUECAT_API_KEY");
+function revenueCatApiKeyFromEnv() {
+  return process.env.REVENUECAT_API_KEY || "";
+}
 
 // Initialize Apple notification verifier
 let verifier = null;
@@ -111,21 +121,31 @@ async function handleConsumptionRequest(verifiedNotification) {
   const requestRef = await db.collection("consumption_requests").add(requestDoc);
   console.log(`✅ Consumption request logged to Firestore: ${requestRef.id}`);
 
+  const rcKey = revenueCatApiKeyFromEnv();
+  const auth = appleAuthFromEnv();
+  if (!auth) {
+    console.error("❌ Missing APPLE_KEY_ID / APPLE_ISSUER_ID / APPLE_PRIVATE_KEY env; cannot respond to Apple");
+    await requestRef.update({
+      status: "failed",
+      error: "Server missing Apple API env configuration",
+      failedAt: new Date(),
+    });
+    return;
+  }
+
   const consumptionData = await getConsumptionData(
     transactionInfo,
-    revenueCatApiKey.value()
+    rcKey
   );
-  
+
   const response = await sendConsumptionDataToApple(
     transactionId,
     consumptionData,
     appleEnvironment.value(),
     {
-      keyId: appleKeyId.value(),
-      issuerId: appleIssuerId.value(),
-      privateKey: Buffer.from(applePrivateKey.value(), "base64").toString(
-        "utf8"
-      ),
+      keyId: auth.keyId,
+      issuerId: auth.issuerId,
+      privateKey: auth.privateKey,
       bundleId: appleBundleId,
     }
   );
@@ -179,7 +199,6 @@ exports.appleConsumptionWebhook = onRequest(
     maxInstances: 10,
     allowInvalidAppCheckToken: true,
     allowUnauthenticated: true,
-    secrets: [appleKeyId, appleIssuerId, applePrivateKey, revenueCatApiKey],
   },
   async (request, response) => {
     // handleTestNotification({});

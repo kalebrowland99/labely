@@ -2324,10 +2324,7 @@ class StoreManager: ObservableObject {
     /// True while a product load attempt is in flight (used for paywall UI).
     @Published private(set) var isLoadingProducts = false
     
-    private let productIds = [
-        "com.labely.ios.premium.annual2",        // Yearly subscription
-        "com.labely.ios.premium.annual.winback2" // Yearly winback offer
-    ]
+    private let storefrontProductIds = Config.SubscriptionSKU.storefrontProductIds
     
     /// Coalesces concurrent loads (hard paywall fires `onAppear` + step 1→2 prefetch; parallel calls can confuse StoreKit on iPad).
     private var loadProductsTask: Task<Void, Never>?
@@ -2356,7 +2353,7 @@ class StoreManager: ObservableObject {
         isLoadingProducts = true
         defer { isLoadingProducts = false }
         do {
-            let newProducts = try await Product.products(for: productIds)
+            let newProducts = try await Product.products(for: storefrontProductIds)
             // StoreKit sometimes returns an empty array on first request (notably iPad / cold start).
             // Never replace a good catalog with an empty snapshot from a flaky follow-up request.
             if newProducts.isEmpty && !subscriptions.isEmpty {
@@ -2370,7 +2367,7 @@ class StoreManager: ObservableObject {
             }
             if subscriptions.isEmpty {
                 print("⚠️ No products returned. Verify product IDs are approved in App Store Connect:")
-                productIds.forEach { print("   - \($0)") }
+                storefrontProductIds.forEach { print("   - \($0)") }
             }
         } catch {
             print("❌ Failed to load products: \(error)")
@@ -2397,7 +2394,7 @@ class StoreManager: ObservableObject {
         for await result in Transaction.currentEntitlements {
             switch result {
             case .verified(let transaction):
-                if productIds.contains(transaction.productID) {
+                if Config.SubscriptionSKU.entitlementProductIDs.contains(transaction.productID) {
                     isSubscribed = true
                     return
                 }
@@ -2964,7 +2961,7 @@ struct TermsOfServiceView: View {
                 .font(.system(size: 16))
                 .foregroundColor(.black)
             
-            Text(NSLocalizedString("📧 By email: help@labely.app", comment: ""))
+            Text(NSLocalizedString("📧 By email: kalebrowland99@gmail.com", comment: ""))
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.blue)
         }
@@ -3310,7 +3307,7 @@ struct PrivacyPolicyView: View {
                 .font(.system(size: 16))
                 .foregroundColor(.black)
             
-            Text(NSLocalizedString("📧 By email: help@labely.app", comment: ""))
+            Text(NSLocalizedString("📧 By email: kalebrowland99@gmail.com", comment: ""))
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.blue)
         }
@@ -10186,7 +10183,8 @@ class OnboardingDataManager: ObservableObject {
     }
 }
 
-// Name Entry View (Labely onboarding starts here)
+// Name Entry View — legacy Labely onboarding entry (`NameEntryView` → questions → rating → paywall).
+// Routed via `LabelyOnboardingVariant`; default is `NewLabelyOnboardingRootView` in `LabelyOnboardingRouting.swift`.
 struct NameEntryView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var coordinator = OnboardingCoordinator()
@@ -11548,103 +11546,117 @@ struct ContentView: View {
     @State private var showingEmailSignIn = false
     @State private var showingOnboarding = false
     @State private var navigateToTryForFree = false
+
+    /// v2: splash + welcome + questions as the root (no old “Get Started” landing first).
+    private var showsV2OnboardingAsRoot: Bool {
+        LabelyOnboardingVariant.active == .v2 && !authManager.hasCompletedOnboarding
+    }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                Spacer(minLength: 0)
-
-                Image("labely_home_preview")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.58)
-                    .clipShape(RoundedRectangle(cornerRadius: 32))
-                    .padding(.horizontal, 12)
-                    .padding(.top, 60)
-                    .padding(.bottom, 20)
-                
-                // Title Text
-                Text("See beyond the label")
-                    .font(.system(size: 28, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 20)
-                
-                Spacer()
-                
-                // Bottom Buttons
-                VStack(spacing: 16) {
-                    // Get Started - Static button
-                    GetStartedButton(showingOnboarding: $showingOnboarding)
-                    
-                    // Only show sign in option if user is not logged in
-                    if !authManager.isLoggedIn {
-                        HStack(spacing: 4) {
-                            Text("Already have an account?")
-                                .font(.system(size: 15))
-                            Button(action: { showingSignIn = true }) {
-                                Text("Sign In")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.black)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
-            }
-            .background(Color.white)
-            .ignoresSafeArea(.all, edges: .top)
-        }
-        .navigationBarHidden(true)
-        .sheet(isPresented: Binding(
-            get: { showingSignIn && !authManager.isLoggedIn },
-            set: { showingSignIn = $0 }
-        )) {
-            SignInView(showingEmailSignIn: $showingEmailSignIn)
-                .presentationDetents([.height(UIScreen.main.bounds.height * 0.52)])
-                .presentationDragIndicator(.hidden)
-        }
-        .fullScreenCover(isPresented: $showingEmailSignIn) {
-            EmailSignInView()
-        }
-        .fullScreenCover(isPresented: $showingOnboarding) {
-            NavigationView {
-                // Show complete onboarding from start for logged-in users
-                // or from SongFrequencyView for anonymous users
-                if authManager.isLoggedIn {
-                    NameEntryView()
-                        .horizontalSlideTransition()
+        Group {
+            if showsV2OnboardingAsRoot {
+                NavigationView {
+                    NewLabelyOnboardingRootView()
                         .onDisappear {
-                            // Mark onboarding as completed when dismissed
                             if authManager.isLoggedIn {
                                 authManager.markOnboardingCompleted()
                             }
                         }
-                } else {
-                    NameEntryView()
-                        .horizontalSlideTransition()
                 }
-            }
-            .navigationViewStyle(StackNavigationViewStyle())
-            .preferredColorScheme(.light)
-        }
-        .onChange(of: authManager.isLoggedIn) { isLoggedIn in
-                if isLoggedIn {
-                    // User became authenticated, dismiss any open sheets
-                    showingSignIn = false
-                    
-                    // If user hasn't completed onboarding, show onboarding flow
-                    if !authManager.hasCompletedOnboarding {
+                .navigationViewStyle(StackNavigationViewStyle())
+                .preferredColorScheme(.light)
+            } else {
+                NavigationView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+
+                        Image("labely_home_preview")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.58)
+                            .clipShape(RoundedRectangle(cornerRadius: 32))
+                            .padding(.horizontal, 12)
+                            .padding(.top, 60)
+                            .padding(.bottom, 20)
+                        
+                        // Title Text
+                        Text("See beyond the label")
+                            .font(.system(size: 28, weight: .bold))
+                            .multilineTextAlignment(.center)
+                            .padding(.bottom, 20)
+                        
+                        Spacer()
+                        
+                        // Bottom Buttons
+                        VStack(spacing: 16) {
+                            // Get Started - Static button
+                            GetStartedButton(showingOnboarding: $showingOnboarding)
+                            
+                            // Only show sign in option if user is not logged in
+                            if !authManager.isLoggedIn {
+                                HStack(spacing: 4) {
+                                    Text("Already have an account?")
+                                        .font(.system(size: 15))
+                                    Button(action: { showingSignIn = true }) {
+                                        Text("Sign In")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(.black)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
+                    }
+                    .background(Color.white)
+                    .ignoresSafeArea(.all, edges: .top)
+                }
+                .navigationBarHidden(true)
+                .sheet(isPresented: Binding(
+                    get: { showingSignIn && !authManager.isLoggedIn },
+                    set: { showingSignIn = $0 }
+                )) {
+                    SignInView(showingEmailSignIn: $showingEmailSignIn)
+                        .presentationDetents([.height(UIScreen.main.bounds.height * 0.52)])
+                        .presentationDragIndicator(.hidden)
+                }
+                .fullScreenCover(isPresented: $showingEmailSignIn) {
+                    EmailSignInView()
+                }
+                .fullScreenCover(isPresented: $showingOnboarding) {
+                    NavigationView {
+                        Group {
+                            switch LabelyOnboardingVariant.active {
+                            case .legacy:
+                                LegacyLabelyOnboardingRootView()
+                            case .v2:
+                                NewLabelyOnboardingRootView()
+                            }
+                        }
+                        .onDisappear {
+                            if authManager.isLoggedIn {
+                                authManager.markOnboardingCompleted()
+                            }
+                        }
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
+                    .preferredColorScheme(.light)
+                }
+                .onChange(of: authManager.isLoggedIn) { isLoggedIn in
+                    if isLoggedIn {
+                        showingSignIn = false
+                        if !authManager.hasCompletedOnboarding && LabelyOnboardingVariant.active != .v2 {
+                            showingOnboarding = true
+                        }
+                    }
+                }
+                .onAppear {
+                    if authManager.isLoggedIn && !authManager.hasCompletedOnboarding && LabelyOnboardingVariant.active == .legacy {
                         showingOnboarding = true
                     }
                 }
             }
-            .onAppear {
-                // Check on app launch if user is already logged in but hasn't completed onboarding
-                if authManager.isLoggedIn && !authManager.hasCompletedOnboarding {
-                    showingOnboarding = true
-                }
-            }
+        }
     }
 }
 
@@ -11774,18 +11786,23 @@ struct OnboardingView: View {
     
     var body: some View {
         NavigationView {
-            NameEntryView()
-                .horizontalSlideTransition()
+            Group {
+                switch LabelyOnboardingVariant.active {
+                case .legacy:
+                    LegacyLabelyOnboardingRootView()
+                case .v2:
+                    NewLabelyOnboardingRootView()
+                }
+            }
             .onAppear {
-                    // Start tracking when onboarding begins
-                coordinator.startOnboarding()
+                if LabelyOnboardingVariant.active == .legacy {
+                    coordinator.startOnboarding()
+                }
             }
             .onDisappear {
-                // Track dropoff if user exits onboarding early
                 if !authManager.hasCompletedSubscription {
                     coordinator.trackDropoff()
                 }
-                // When onboarding is dismissed, mark it as completed
                 authManager.markOnboardingCompleted()
             }
         }
@@ -12528,7 +12545,7 @@ struct SpinnerView: View {
     let segments = [
         ("50%", [Color(red: 0.4, green: 0.7, blue: 1.0), Color(red: 0.6, green: 0.8, blue: 1.0)]),    // Light blue gradient 
         ("No LUCK", [Color.white, Color(red: 0.95, green: 0.95, blue: 0.95)]),                         // White gradient
-        ("30%", [Color(red: 0.82, green: 0.84, blue: 0.86), Color(red: 0.68, green: 0.70, blue: 0.74)]),
+        ("30%", [Color(red: 0.98, green: 0.42, blue: 0.28), Color(red: 0.92, green: 0.28, blue: 0.22)]), // coral–orange (was grey)
         ("90%", [Color(red: 0.6, green: 0.3, blue: 0.9), Color(red: 0.8, green: 0.5, blue: 1.0)]),    // Purple gradient
         ("70%", [Color.white, Color(red: 0.95, green: 0.95, blue: 0.95)]),                              // White gradient
         ("🎁", [Color(red: 0.6, green: 0.3, blue: 0.9), Color(red: 0.8, green: 0.5, blue: 1.0)])      // Purple gradient - WINNER POSITION
@@ -12920,7 +12937,9 @@ struct TryForFreeView: View {
             // Main content
             VStack(spacing: 0) {
                 // Title
-                Text(remoteConfig.hardPaywall ? "We want you to try\nLabely for free" : "We want you to try\nLabely")
+                Text(remoteConfig.hardPaywall
+                    ? "We offer 7 days free so everyone can try Labely"
+                    : "We want you to try\nLabely")
                     .font(.system(size: 28, weight: .bold))
                     .multilineTextAlignment(.center)
                     .foregroundColor(.black)
@@ -12980,7 +12999,7 @@ struct TryForFreeView: View {
                 
                 // Legal text (conditional based on paywall mode)
                 if !remoteConfig.hardPaywall {
-                Text("Billed $79.99 per year")
+                Text("Billed $29 per year")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.black)
                     .opacity(showContent ? 1 : 0)
@@ -13022,8 +13041,8 @@ struct SubscriptionView: View {
 
     private var annualProduct: Product? {
         // Prefer the standard annual plan for display.
-        storeManager.subscriptions.first(where: { $0.id == "com.labely.ios.premium.annual2" })
-            ?? storeManager.subscriptions.first(where: { $0.id == "com.labely.ios.premium.annual.winback2" })
+        storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualStandard })
+            ?? storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualWinback })
     }
     
     private var billedAmountText: String {
@@ -13031,7 +13050,7 @@ struct SubscriptionView: View {
         if let p = annualProduct {
             return "Billed \(p.displayPrice) per year"
         }
-        return "Billed $79.99 per year"
+        return "Billed $29 per year"
     }
     
     private var purchaseButtonTitle: String {
@@ -13088,7 +13107,7 @@ struct SubscriptionView: View {
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                         .scaleEffect(0.9)
                                 }
-                                Text(prefetchingStep2Products ? "Loading…" : (remoteConfig.hardPaywall ? "Try For $0.00" : "Try Labely"))
+                                Text(prefetchingStep2Products ? "Loading…" : (remoteConfig.hardPaywall ? "Try for $0.00" : "Try Labely"))
                                     .font(.system(size: 17, weight: .semibold))
                             }
                                 .foregroundColor(.white)
@@ -13113,12 +13132,14 @@ struct SubscriptionView: View {
                             .animation(.easeOut(duration: 0.6).delay(1.4), value: showContent)
                         }
                         
-                        // No commitment text for Step 1
-                        Text("No commitment, cancel anytime.")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                            .opacity(showContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(1.6), value: showContent)
+                        // Step 1: "No commitment" (soft paywall only)
+                        if !remoteConfig.hardPaywall {
+                            Text("No commitment, cancel anytime.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                                .opacity(showContent ? 1 : 0)
+                                .animation(.easeOut(duration: 0.6).delay(1.6), value: showContent)
+                        }
                     } else {
                         // Step 2: Payment info (conditional based on paywall mode)
                         if remoteConfig.hardPaywall {
@@ -13162,9 +13183,9 @@ struct SubscriptionView: View {
                                         }
                                         
                         // Find the subscription product
-                        guard let subscription = storeManager.subscriptions.first(where: { 
-                            $0.id == "com.labely.ios.premium.annual2" ||
-                            $0.id == "com.labely.ios.premium.annual.winback2"
+                        guard let subscription = storeManager.subscriptions.first(where: {
+                            $0.id == Config.SubscriptionSKU.annualStandard ||
+                            $0.id == Config.SubscriptionSKU.annualWinback
                         }) else {
                                             print("❌ Subscription product not found")
                                             errorMessage = "Unable to load subscription. Please check your internet connection and try again."
@@ -13292,13 +13313,14 @@ struct SubscriptionView: View {
                             .padding(.horizontal, 24)
                             .opacity(showContent ? 1 : 0)
                             .animation(.easeOut(duration: 0.6).delay(1.2), value: showContent)
-                            
-                            // Pricing disclosure: billed amount must be most prominent (App Review 3.1.2).
-                            Text(billedAmountText)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.black)
-                                .opacity(showContent ? 1 : 0)
-                                .animation(.easeOut(duration: 0.6).delay(1.35), value: showContent)
+
+                            if !remoteConfig.hardPaywall {
+                                Text(billedAmountText)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.black)
+                                    .opacity(showContent ? 1 : 0)
+                                    .animation(.easeOut(duration: 0.6).delay(1.35), value: showContent)
+                            }
                     }
                     
                     if currentStep == 2 {
@@ -13541,12 +13563,12 @@ struct SubscriptionView: View {
                 // In 7 days item - bottom line (you can adjust lineHeight individually)
                 TimelineItem(
                     icon: "plus",
-                    iconColor: .gray,
+                    iconColor: .green,
                     title: "In 7 days - Billing Starts",
                     description: "You'll be charged, unless you cancel anytime before.",
                     isLast: true,
                     showContent: showContent,
-                    lineColor: .gray,
+                    lineColor: .green,
                     lineHeight: 80, // Adjust this for bottom line length
                     iconTopPadding: 15,
                     textTopPadding: 25,
@@ -13595,6 +13617,35 @@ struct OneTimeOfferView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var navigateToCreateAccount = false
+    
+    private var standardAnnualProduct: Product? {
+        storeManager.subscriptions.first { $0.id == Config.SubscriptionSKU.annualStandard }
+    }
+    
+    private var winbackAnnualProduct: Product? {
+        storeManager.subscriptions.first { $0.id == Config.SubscriptionSKU.annualWinback }
+    }
+    
+    /// Shown struck out next to the winback price (usually the standard annual list price).
+    private var winbackComparedListDisplayPrice: String {
+        standardAnnualProduct?.displayPrice ?? "$29"
+    }
+    
+    /// Winback annual SKU display price.
+    private var winbackOfferDisplayPrice: String {
+        winbackAnnualProduct?.displayPrice ?? "$19"
+    }
+    
+    /// Whole percent saved vs standard annual; fallback when SKUs aren’t loaded yet (~34% at $29 vs $19).
+    private var winbackRoundedPercentVersusAnnual: Int {
+        guard let reference = standardAnnualProduct, let offer = winbackAnnualProduct else {
+            return 34
+        }
+        let ref = NSDecimalNumber(decimal: reference.price).doubleValue
+        guard ref > 0 else { return 34 }
+        let off = NSDecimalNumber(decimal: offer.price).doubleValue
+        return max(5, Int(((ref - off) / ref * 100).rounded()))
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -13652,7 +13703,7 @@ struct OneTimeOfferView: View {
                     
                     // Main offer box (with shadow and white border)
                     VStack(spacing: 12) {
-                        Text("50% OFF")
+                        Text("\(winbackRoundedPercentVersusAnnual)% OFF")
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.white)
                         Text("FOREVER")
@@ -13671,14 +13722,14 @@ struct OneTimeOfferView: View {
                     )
                 }
                 
-                // Pricing
+                // Pricing (standard annual struck through vs winback annual)
                 HStack(spacing: 8) {
-                    Text("$79.99")
+                    Text(winbackComparedListDisplayPrice)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.black)
                         .strikethrough()
                     
-                    Text("$39.99")
+                    Text(winbackOfferDisplayPrice)
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.black)
                 }
@@ -13718,12 +13769,12 @@ struct OneTimeOfferView: View {
                             Text("Yearly")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.black)
-                            Text("Lowest price ever • $39.99")
+                            Text("Lowest price ever • \(winbackOfferDisplayPrice)")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                         }
                         Spacer()
-                        Text("$39.99 /year")
+                        Text("\(winbackOfferDisplayPrice) /year")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.black)
                     }
@@ -13821,11 +13872,11 @@ struct OneTimeOfferView: View {
         
         do {
             // Find the winback product for one-time offer (try yearly winback first, then fallback to monthly)
-            guard let specialSubscription = storeManager.subscriptions.first(where: { 
-                $0.id == "com.labely.ios.premium.annual.winback2"
+            guard let specialSubscription = storeManager.subscriptions.first(where: {
+                $0.id == Config.SubscriptionSKU.annualWinback
             }) else {
                 print("❌ Winback offer product not found in available products")
-                print("🔍 Looking for: com.labely.ios.premium.annual.winback2")
+                print("🔍 Looking for: \(Config.SubscriptionSKU.annualWinback)")
                 print("📦 Available products:")
                 for product in storeManager.subscriptions {
                     print("   - \(product.id)")
@@ -13842,10 +13893,12 @@ struct OneTimeOfferView: View {
             case .success(let verification):
                 switch verification {
                 case .verified(let transaction):
-                    print("✅ Successfully purchased $79.00 winback offer: \(transaction.productID)")
+                    let productPrice = Double(truncating: specialSubscription.price as NSNumber)
+                    print("✅ Successfully purchased winback offer (\(specialSubscription.displayPrice)): \(transaction.productID)")
                     
                     // Track successful winback subscription purchase
-                    MixpanelService.shared.trackSubscriptionPurchased(planType: "winback_79.00", price: 79.00)
+                    let winbackPlanId = String(format: "winback_%.2f", productPrice)
+                    MixpanelService.shared.trackSubscriptionPurchased(planType: winbackPlanId, price: productPrice)
                     
                     // Record transaction for Apple consumption tracking
                     // COMMENTED OUT - ConsumptionRequestService not needed for calorie tracking app
@@ -13866,24 +13919,23 @@ struct OneTimeOfferView: View {
                     
                     // Send conversion to SKAdNetwork for Meta Ads attribution
                     if #available(iOS 15.4, *) {
-                        let conversionValue = 55  // $79 winback = high value
+                        let conversionValue = 22  // coarse value for discounted annual winback (~$19)
                         SKAdNetwork.updatePostbackConversionValue(conversionValue) { error in
                             if let error = error {
                                 print("⚠️ SKAdNetwork error: \(error)")
                             } else {
-                                print("✅ SKAdNetwork conversion value updated: \(conversionValue) for winback offer ($79)")
+                                print("✅ SKAdNetwork conversion value updated: \(conversionValue) for winback offer")
                             }
                         }
                     } else if #available(iOS 14.0, *) {
                         // Fallback for iOS 14.0-15.3
-                        let conversionValue = 55
+                        let conversionValue = 22
                         SKAdNetwork.updateConversionValue(conversionValue)
-                        print("✅ SKAdNetwork conversion value updated: \(conversionValue) for winback offer ($79)")
+                        print("✅ SKAdNetwork conversion value updated: \(conversionValue) for winback offer")
                     }
                     
                     // Store purchase event to send AFTER user logs in (to capture email)
                     // This ensures accurate user tracking per Meta CAPI requirements
-                    let productPrice = Double(truncating: specialSubscription.price as NSNumber)
                     PendingMetaEventService.shared.storePendingPurchase(
                         transactionId: String(transaction.id),
                         price: productPrice,
@@ -14101,8 +14153,14 @@ class RemoteConfigManager: NSObject, ObservableObject {
     static let shared = RemoteConfigManager()
     
     @Published var hardPaywall: Bool = true // Default to true (hard paywall)
+    /// Two-step paywall layout (plan cards + Unlimited Access). Same Firestore doc as hardpaywall. Field key: `twopaywall`.
+    @Published var twoPaywall: Bool = false
+    /// When true: shortened v2 onboarding (welcome → team → motivations → symptoms → symptom results → impact/Lay’s sheet → paywall). Field key: `shortonboarding`.
+    @Published var shortOnboarding: Bool = false
     
     private let hardPaywallKey = "hardpaywall"
+    private let twoPaywallKey = "twopaywall"
+    private let shortOnboardingKey = "shortonboarding"
     private let configCollection = "app_config"
     private var hasAttemptedLoad = false
     
@@ -14151,15 +14209,30 @@ class RemoteConfigManager: NSObject, ObservableObject {
                 }
                 
                 if let document = document, document.exists,
-                   let data = document.data(),
-                   let hardPaywall = data[self?.hardPaywallKey ?? ""] as? Bool {
-                    self?.hardPaywall = hardPaywall
-                    print("✅ Config loaded from Firestore - hardPaywall: \(hardPaywall)")
+                   let data = document.data() {
+                    if let hw = data[self?.hardPaywallKey ?? ""] as? Bool {
+                        self?.hardPaywall = hw
+                        print("✅ Config loaded - hardPaywall: \(hw)")
+                    }
+                    if let tw = data[self?.twoPaywallKey ?? ""] as? Bool {
+                        self?.twoPaywall = tw
+                        print("✅ Config loaded - twoPaywall: \(tw)")
+                    }
+                    if let sh = data[self?.shortOnboardingKey ?? ""] as? Bool {
+                        self?.shortOnboarding = sh
+                        print("✅ Config loaded - shortOnboarding: \(sh)")
+                    }
+                    // If neither field present but document exists
+                    if (data[self?.hardPaywallKey ?? ""] as? Bool) == nil
+                        && (data[self?.twoPaywallKey ?? ""] as? Bool) == nil
+                        && (data[self?.shortOnboardingKey ?? ""] as? Bool) == nil {
+                         print("ℹ️ Document exists but no known paywall booleans parsed; keeping defaults.")
+                    }
                 } else {
                     print("ℹ️ No config found in Firestore, using default (hardPaywall: true)")
                     print("🔍 Document exists: \(document?.exists ?? false)")
                     print("🔍 Document path: \(self?.configCollection ?? "")/paywall_config")
-                    print("🔍 Expected field: \(self?.hardPaywallKey ?? "")")
+                    print("🔍 Expected fields: \(self?.hardPaywallKey ?? ""), \(self?.twoPaywallKey ?? ""), \(self?.shortOnboardingKey ?? "") (optional)")
                     
                     if let data = document?.data() {
                         print("🔍 Document data: \(data)")
@@ -14174,6 +14247,8 @@ class RemoteConfigManager: NSObject, ObservableObject {
                     print("   2. Create collection: app_config")
                     print("   3. Create document: paywall_config")
                     print("   4. Add field: hardpaywall (boolean) = true")
+                    print("   5. Optional: twopaywall (boolean) — two-step Unlimited Access paywall")
+                    print("   6. Optional: shortonboarding (boolean) — shortened onboarding (fewer slides → paywall)")
                 }
             }
         }
@@ -14624,6 +14699,33 @@ class AuthenticationManager: NSObject, ObservableObject {
         saveAuthenticationState()
         print("👤 Set guest mode - user is now logged in")
     }
+
+    func restorePersistedFirebaseSessionIfNeeded() {
+        guard FirebaseApp.app() != nil else {
+            print("⚠️ Firebase not configured yet; skipping auth session restore")
+            return
+        }
+
+        guard let firebaseUser = Auth.auth().currentUser else {
+            return
+        }
+
+        if currentUser == nil || currentUser?.id != firebaseUser.uid {
+            currentUser = UserData(
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: firebaseUser.displayName ?? firebaseUser.email?.components(separatedBy: "@").first?.capitalized,
+                profileImageURL: firebaseUser.photoURL?.absoluteString,
+                authProvider: firebaseUser.providerData.first?.providerID == "google.com" ? .google : .email
+            )
+        }
+
+        isLoggedIn = true
+        saveAuthenticationState()
+        loadOnboardingStatusFromFirebase()
+        loadSubscriptionStatusFromFirebase()
+        print("🔐 Restored persisted Firebase auth session for \(firebaseUser.email ?? firebaseUser.uid)")
+    }
     
     private func saveOnboardingStatusToFirebase() {
         guard let email = currentUser?.email else {
@@ -14736,23 +14838,29 @@ class AuthenticationManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 if let error = error {
                     print("❌ Error loading subscription status from Firebase: \(error.localizedDescription)")
-                    // On error, default to false (show onboarding)
-                    self?.hasCompletedSubscription = false
-                    self?.saveAuthenticationState()
+                    // Never regress a locally completed StoreKit checkout because Firebase is stale/unavailable.
+                    if self?.hasCompletedSubscription != true {
+                        self?.hasCompletedSubscription = false
+                        self?.saveAuthenticationState()
+                    }
                     return
                 }
                 
                 if let document = document, document.exists,
                    let data = document.data(),
                    let hasCompleted = data["hasCompletedSubscription"] as? Bool {
-                    self?.hasCompletedSubscription = hasCompleted
-                    self?.saveAuthenticationState()
+                    if hasCompleted || self?.hasCompletedSubscription != true {
+                        self?.hasCompletedSubscription = hasCompleted
+                        self?.saveAuthenticationState()
+                    }
                     print("✅ Loaded subscription status from Firestore for email \(email): \(hasCompleted)")
                 } else {
-                    // No subscription record found - user hasn't completed subscription
+                    // No subscription record found. Keep a locally completed StoreKit checkout if present.
                     print("📝 No subscription status found in Firestore for email: \(email) - defaulting to false")
-                    self?.hasCompletedSubscription = false
-                    self?.saveAuthenticationState()
+                    if self?.hasCompletedSubscription != true {
+                        self?.hasCompletedSubscription = false
+                        self?.saveAuthenticationState()
+                    }
                 }
             }
         }
@@ -18786,7 +18894,6 @@ class FoodDataManager: ObservableObject {
 // MARK: - OpenAI Food Analysis Service
 class FoodAnalysisService {
     static let shared = FoodAnalysisService()
-    private let endpoint = "https://api.openai.com/v1/chat/completions"
     
     enum FoodAnalysisError: Error {
         case imageConversionFailed
@@ -18796,17 +18903,11 @@ class FoodAnalysisService {
     }
     
     func analyzeFood(image: UIImage) async throws -> ScannedFood {
-        let apiKey = Config.openAIApiKey
-        guard !apiKey.isEmpty else {
-            throw FoodAnalysisError.apiError("Missing OpenAI key. In Xcode: Product → Scheme → Edit Scheme → Run → Environment Variables → OPENAI_API_KEY.")
-        }
-        // Convert image to base64
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw FoodAnalysisError.imageConversionFailed
         }
         let base64Image = imageData.base64EncodedString()
-        
-        // Prepare the prompt
+
         let prompt = """
         Analyze this food image and provide detailed nutritional information in JSON format.
         
@@ -18867,96 +18968,67 @@ class FoodAnalysisService {
             "max_tokens": 1000,
             "temperature": 0.3
         ]
-        
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody),
-              let url = URL(string: endpoint) else {
+
+        let assistantText: String
+        guard let messages = requestBody["messages"] as? [[String: Any]] else {
             throw FoodAnalysisError.invalidResponse
         }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-        
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw FoodAnalysisError.invalidResponse
-            }
-            
-            if httpResponse.statusCode != 200 {
-                if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let error = errorJson["error"] as? [String: Any],
-                   let message = error["message"] as? String {
-                    throw FoodAnalysisError.apiError(message)
-                }
-                throw FoodAnalysisError.apiError("HTTP \(httpResponse.statusCode)")
-            }
-            
-            // Parse OpenAI response
-            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let choices = json["choices"] as? [[String: Any]],
-                  let firstChoice = choices.first,
-                  let message = firstChoice["message"] as? [String: Any],
-                  let content = message["content"] as? String else {
-                throw FoodAnalysisError.invalidResponse
-            }
-            
-            // Clean content (remove markdown code blocks if present)
-            let cleanedContent = content
-                .replacingOccurrences(of: "```json", with: "")
-                .replacingOccurrences(of: "```", with: "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            // Parse the food data JSON
-            guard let foodData = cleanedContent.data(using: .utf8),
-                  let foodJson = try? JSONSerialization.jsonObject(with: foodData) as? [String: Any] else {
-                throw FoodAnalysisError.invalidResponse
-            }
-            
-            // Create timestamp
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h:mm a"
-            let timestamp = formatter.string(from: Date())
-            
-            // Extract values
-            let name = foodJson["name"] as? String ?? "Unknown Food"
-            let servings = foodJson["servings"] as? Int ?? 1
-            let calories = foodJson["calories"] as? Int ?? 0
-            let protein = foodJson["protein"] as? Int ?? 0
-            let carbs = foodJson["carbs"] as? Int ?? 0
-            let fats = foodJson["fats"] as? Int ?? 0
-            let fiber = foodJson["fiber"] as? Int ?? 0
-            let sugar = foodJson["sugar"] as? Int ?? 0
-            let sodium = foodJson["sodium"] as? Int ?? 0
-            let healthScore = foodJson["healthScore"] as? Int ?? 5
-            let icon = foodJson["icon"] as? String ?? "🍽️"
-            let ingredients = foodJson["ingredients"] as? [String] ?? []
-            
-            return ScannedFood(
-                name: name,
-                servings: servings,
-                timestamp: timestamp,
-                calories: calories,
-                protein: protein,
-                carbs: carbs,
-                fats: fats,
-                fiber: fiber,
-                sugar: sugar,
-                sodium: sodium,
-                healthScore: healthScore,
-                icon: icon,
-                imageName: nil,
-                ingredients: ingredients
+            assistantText = try await OpenAIService.shared.firebaseMessagesCompletion(
+                messages: messages,
+                model: (requestBody["model"] as? String) ?? "gpt-4o",
+                maxTokens: (requestBody["max_tokens"] as? Int) ?? 1000,
+                temperature: (requestBody["temperature"] as? Double) ?? 0.3
             )
-            
-        } catch let error as FoodAnalysisError {
-            throw error
+        } catch let openAIError as OpenAIError {
+            throw FoodAnalysisError.apiError(openAIError.localizedDescription)
         } catch {
             throw FoodAnalysisError.networkError(error)
         }
+
+        let cleanedContent = assistantText
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let foodData = cleanedContent.data(using: .utf8),
+              let foodJson = try? JSONSerialization.jsonObject(with: foodData) as? [String: Any] else {
+            throw FoodAnalysisError.invalidResponse
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        let timestamp = formatter.string(from: Date())
+
+        let name = foodJson["name"] as? String ?? "Unknown Food"
+        let servings = foodJson["servings"] as? Int ?? 1
+        let calories = foodJson["calories"] as? Int ?? 0
+        let protein = foodJson["protein"] as? Int ?? 0
+        let carbs = foodJson["carbs"] as? Int ?? 0
+        let fats = foodJson["fats"] as? Int ?? 0
+        let fiber = foodJson["fiber"] as? Int ?? 0
+        let sugar = foodJson["sugar"] as? Int ?? 0
+        let sodium = foodJson["sodium"] as? Int ?? 0
+        let healthScore = foodJson["healthScore"] as? Int ?? 5
+        let icon = foodJson["icon"] as? String ?? "🍽️"
+        let ingredients = foodJson["ingredients"] as? [String] ?? []
+
+        return ScannedFood(
+            name: name,
+            servings: servings,
+            timestamp: timestamp,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fats: fats,
+            fiber: fiber,
+            sugar: sugar,
+            sodium: sodium,
+            healthScore: healthScore,
+            icon: icon,
+            imageName: nil,
+            ingredients: ingredients
+        )
     }
 }
 

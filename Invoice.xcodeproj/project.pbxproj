@@ -36,8 +36,51 @@
 		9B77E8E22E2CBA9A0025E339 /* ToolPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B77E8DC2E2CBA9A0025E339 /* ToolPrompts.swift */; };
 		9B932B872E2968D800549AE9 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B932B862E2968D800549AE9 /* StoreKit.framework */; };
 		9BCCD2512E30A72000545DD8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9BCCD2502E30A71F00545DD8 /* GoogleService-Info.plist */; };
+		A12B051320260512002594DF /* onboarding-material/main.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = A12B051220260512002594DF /* onboarding-material/main.mp4 */; };
 		A1BE7E042F400001002594DF /* LabelyScanFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BE7E032F400001002594DF /* LabelyScanFeatures.swift */; };
+		A1BE7E082F500003002594DF /* LabelyOnboardingRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BE7E072F500003002594DF /* LabelyOnboardingRouting.swift */; };
+		AE1B2C3D2FD00001002594DF /* onboarding-material/labely-says.png in Resources */ = {isa = PBXBuildFile; fileRef = AE1B2C3C2FD00001002594DF /* onboarding-material/labely-says.png */; };
+		AE2C3D4E2FE00001002594DF /* onboarding-material/slide0.png in Resources */ = {isa = PBXBuildFile; fileRef = AE2C3D4F2FE00001002594DF /* onboarding-material/slide0.png */; };
+		B201C1022FC0001002594DF /* onboarding-material/slide1.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C1012FC0001002594DF /* onboarding-material/slide1.png */; };
+		B201C1042FC0001002594DF /* onboarding-material/slide2.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C1032FC0001002594DF /* onboarding-material/slide2.png */; };
+		B201C1062FC0001002594DF /* onboarding-material/slide3.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C1052FC0001002594DF /* onboarding-material/slide3.png */; };
+		B201C1082FC0001002594DF /* onboarding-material/slide4.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C1072FC0001002594DF /* onboarding-material/slide4.png */; };
+		B201C10A2FC0001002594DF /* onboarding-material/slide5.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C1092FC0001002594DF /* onboarding-material/slide5.png */; };
+		B201C10C2FC0001002594DF /* onboarding-material/labely-isnt-just-an-app.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C10B2FC0001002594DF /* onboarding-material/labely-isnt-just-an-app.png */; };
+		B201C10E2FC0001002594DF /* onboarding-material/trusted-by-thousands.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C10D2FC0001002594DF /* onboarding-material/trusted-by-thousands.png */; };
+		B201C1102FC0001002594DF /* onboarding-material/free-value-gift.png in Resources */ = {isa = PBXBuildFile; fileRef = B201C10F2FC0001002594DF /* onboarding-material/free-value-gift.png */; };
+		B2C3D4E82F600002002594DF /* onboarding-material/labely-mascot-jumping.mov in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E72F600002002594DF /* onboarding-material/labely-mascot-jumping.mov */; };
+		B2C3D4EA2F600004002594DF /* onboarding-material/footer.png in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E92F600004002594DF /* onboarding-material/footer.png */; };
+		B2C3D4EC2F600004002594DF /* onboarding-material/labely-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4EB2F600004002594DF /* onboarding-material/labely-logo.png */; };
 		B442D08FCB4A4DFC92A6DD51009C7AE6 /* Pleasent Poetry.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B442D08FCB4A4DFC92A6DD51009C7AE5 /* Pleasent Poetry.mp3 */; };
+		C3D4E5F72F600006002594DF /* onboarding-material/bg.png in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5F62F600006002594DF /* onboarding-material/bg.png */; };
+		C3D4E5F92F600006002594DF /* onboarding-material/clean-living-girlie.png in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5F82F600006002594DF /* onboarding-material/clean-living-girlie.png */; };
+		C3D4E5FB2F600006002594DF /* onboarding-material/holidstic-health-bro.png in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5FA2F600006002594DF /* onboarding-material/holidstic-health-bro.png */; };
+		C3D4E5FD2F600006002594DF /* onboarding-material/mama-bear-protector.png in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5FC2F600006002594DF /* onboarding-material/mama-bear-protector.png */; };
+		C3D4E5FF2F600006002594DF /* onboarding-material/wellness-warrior-dad.png in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5FE2F600006002594DF /* onboarding-material/wellness-warrior-dad.png */; };
+		CF01000000FF0001002594DF /* onboarding-material/lowenergy.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000001FF0001002594DF /* onboarding-material/lowenergy.jpg */; };
+		CF01000002FF0001002594DF /* onboarding-material/anxiety.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000003FF0001002594DF /* onboarding-material/anxiety.jpg */; };
+		CF01000004FF0001002594DF /* onboarding-material/weightgain.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000005FF0001002594DF /* onboarding-material/weightgain.jpg */; };
+		CF01000006FF0001002594DF /* onboarding-material/skipfornow.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000007FF0001002594DF /* onboarding-material/skipfornow.jpg */; };
+		CF01000008FF0001002594DF /* onboarding-material/behavioralissues.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000009FF0001002594DF /* onboarding-material/behavioralissues.jpg */; };
+		CF0100000AFF0001002594DF /* onboarding-material/hyperactivity.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF0100000BFF0001002594DF /* onboarding-material/hyperactivity.jpg */; };
+		CF0100000CFF0001002594DF /* onboarding-material/sleepproblems.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF0100000DFF0001002594DF /* onboarding-material/sleepproblems.jpg */; };
+		CF0100000EFF0001002594DF /* onboarding-material/depression.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF0100000FFF0001002594DF /* onboarding-material/depression.jpg */; };
+		CF01000010FF0001002594DF /* onboarding-material/brainfog.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CF01000011FF0001002594DF /* onboarding-material/brainfog.jpg */; };
+		DA1000022FF00001002594DF /* onboarding-material/girl1.png in Resources */ = {isa = PBXBuildFile; fileRef = DA1000012FF00001002594DF /* onboarding-material/girl1.png */; };
+		DA1000042FF00001002594DF /* onboarding-material/girl2.png in Resources */ = {isa = PBXBuildFile; fileRef = DA1000032FF00001002594DF /* onboarding-material/girl2.png */; };
+		DA1000062FF00001002594DF /* onboarding-material/boy1.png in Resources */ = {isa = PBXBuildFile; fileRef = DA1000052FF00001002594DF /* onboarding-material/boy1.png */; };
+		DA1000082FF00001002594DF /* onboarding-material/boy2.png in Resources */ = {isa = PBXBuildFile; fileRef = DA1000072FF00001002594DF /* onboarding-material/boy2.png */; };
+		DA10000A2FF00001002594DF /* onboarding-material/mom1.png in Resources */ = {isa = PBXBuildFile; fileRef = DA1000092FF00001002594DF /* onboarding-material/mom1.png */; };
+		DA10000C2FF00001002594DF /* onboarding-material/mom2.png in Resources */ = {isa = PBXBuildFile; fileRef = DA10000B2FF00001002594DF /* onboarding-material/mom2.png */; };
+		DA10000E2FF00001002594DF /* onboarding-material/dad1.png in Resources */ = {isa = PBXBuildFile; fileRef = DA10000D2FF00001002594DF /* onboarding-material/dad1.png */; };
+		DA1000102FF00001002594DF /* onboarding-material/dad2.png in Resources */ = {isa = PBXBuildFile; fileRef = DA10000F2FF00001002594DF /* onboarding-material/dad2.png */; };
+		E1F203062F600050002594DF /* onboarding-material/live-healthier.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203002F600050002594DF /* onboarding-material/live-healthier.png */; };
+		E1F203072F600050002594DF /* onboarding-material/better-sleep.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203012F600050002594DF /* onboarding-material/better-sleep.png */; };
+		E1F203082F600050002594DF /* onboarding-material/clearer-thinking.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203022F600050002594DF /* onboarding-material/clearer-thinking.png */; };
+		E1F203092F600050002594DF /* onboarding-material/more-energy.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203032F600050002594DF /* onboarding-material/more-energy.png */; };
+		E1F2030A2F600050002594DF /* onboarding-material/happier-skin.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203042F600050002594DF /* onboarding-material/happier-skin.png */; };
+		E1F2030B2F600050002594DF /* onboarding-material/healthier-family.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F203052F600050002594DF /* onboarding-material/healthier-family.png */; };
 		E964A22E3D7C4C25BE6D53920A85FD8A /* 10AM In The South.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E964A22E3D7C4C25BE6D53920A85FD8B /* 10AM In The South.mp3 */; };
 		F896B5382E8D873F001C63D8 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = F896B5372E8D873F001C63D8 /* RevenueCat */; };
 		F896B53A2E8D873F001C63D8 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = F896B5392E8D873F001C63D8 /* RevenueCatUI */; };
@@ -60,6 +103,25 @@
 		F8FE61162E75E42000014042 /* StaticVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FE61122E75E42000014042 /* StaticVideoPlayer.swift */; };
 		F8FE61172E75E42000014042 /* FirebaseStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FE61102E75E42000014042 /* FirebaseStorageService.swift */; };
 		F8FE61182E75E42000014042 /* SerpAPIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FE61112E75E42000014042 /* SerpAPIConfig.swift */; };
+		FA1B2C3D2F700001002594DF /* onboarding-material/labely-pledge.png in Resources */ = {isa = PBXBuildFile; fileRef = FA1B2C3C2F700001002594DF /* onboarding-material/labely-pledge.png */; };
+		FA2C3D4E2F700002002594DF /* onboarding-material/ketchup-thenvsnow.png in Resources */ = {isa = PBXBuildFile; fileRef = FA2C3D4A2F700002002594DF /* onboarding-material/ketchup-thenvsnow.png */; };
+		FA2C3D4F2F700002002594DF /* onboarding-material/ritz-thenvsnow.png in Resources */ = {isa = PBXBuildFile; fileRef = FA2C3D4B2F700002002594DF /* onboarding-material/ritz-thenvsnow.png */; };
+		FA2C3D502F700002002594DF /* onboarding-material/panic-to-plan.png in Resources */ = {isa = PBXBuildFile; fileRef = FA2C3D4C2F700002002594DF /* onboarding-material/panic-to-plan.png */; };
+		FA2C3D512F700002002594DF /* onboarding-material/#1-health-app.png in Resources */ = {isa = PBXBuildFile; fileRef = FA2C3D4D2F700002002594DF /* onboarding-material/#1-health-app.png */; };
+		FA2C3D522F700002002594DF /* onboarding-material/inside-labely.png in Resources */ = {isa = PBXBuildFile; fileRef = FA2C3D532F700002002594DF /* onboarding-material/inside-labely.png */; };
+		FB1A2B3C2F800001002594DF /* onboarding-material/low-energy.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B3A2F800001002594DF /* onboarding-material/low-energy.png */; };
+		FB1A2B3D2F800001002594DF /* onboarding-material/brain-fog.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B3B2F800001002594DF /* onboarding-material/brain-fog.png */; };
+		FB1A2B3E2F800001002594DF /* onboarding-material/anxiety.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B3F2F800001002594DF /* onboarding-material/anxiety.png */; };
+		FB1A2B402F800001002594DF /* onboarding-material/depression.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B412F800001002594DF /* onboarding-material/depression.png */; };
+		FB1A2B422F800001002594DF /* onboarding-material/sleep-problems.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B432F800001002594DF /* onboarding-material/sleep-problems.png */; };
+		FB1A2B442F800001002594DF /* onboarding-material/weight-gain.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B452F800001002594DF /* onboarding-material/weight-gain.png */; };
+		FB1A2B462F800001002594DF /* onboarding-material/hyperactivity.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B472F800001002594DF /* onboarding-material/hyperactivity.png */; };
+		FB1A2B482F800001002594DF /* onboarding-material/behavior-issues.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B492F800001002594DF /* onboarding-material/behavior-issues.png */; };
+		FB1A2B4A2F800001002594DF /* onboarding-material/alleviate-your-symptoms.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B4B2F800001002594DF /* onboarding-material/alleviate-your-symptoms.png */; };
+		FB1A2B4C2F800001002594DF /* onboarding-material/behavior-improvement.png in Resources */ = {isa = PBXBuildFile; fileRef = FB1A2B4D2F800001002594DF /* onboarding-material/behavior-improvement.png */; };
+		FC1A2B3C2F900001002594DF /* onboarding-material/onboardingvideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FC1A2B3B2F900001002594DF /* onboarding-material/onboardingvideo.mp4 */; };
+		FC2B3C4D2FA00001002594DF /* onboarding-material/lays.png in Resources */ = {isa = PBXBuildFile; fileRef = FC2B3C4C2FA00001002594DF /* onboarding-material/lays.png */; };
+		FD1A2B3D2FB00001002594DF /* onboarding-material/siete-kettle-chips.png in Resources */ = {isa = PBXBuildFile; fileRef = FD1A2B3C2FB00001002594DF /* onboarding-material/siete-kettle-chips.png */; };
 		PB1234622F100007006BF7E6 /* PriceBookModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PB1234612F100007006BF7E6 /* PriceBookModels.swift */; };
 /* End PBXBuildFile section */
 
@@ -113,8 +175,51 @@
 		9B932B862E2968D800549AE9 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		9B932B882E2972A300549AE9 /* Subscriptions.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = Subscriptions.storekit; path = Invoice/Subscriptions.storekit; sourceTree = "<group>"; };
 		9BCCD2502E30A71F00545DD8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A12B051220260512002594DF /* onboarding-material/main.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "onboarding-material/main.mp4"; sourceTree = "<group>"; };
 		A1BE7E032F400001002594DF /* LabelyScanFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelyScanFeatures.swift; sourceTree = "<group>"; };
+		A1BE7E072F500003002594DF /* LabelyOnboardingRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelyOnboardingRouting.swift; sourceTree = "<group>"; };
+		AE1B2C3C2FD00001002594DF /* onboarding-material/labely-says.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/labely-says.png"; sourceTree = "<group>"; };
+		AE2C3D4F2FE00001002594DF /* onboarding-material/slide0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide0.png"; sourceTree = "<group>"; };
+		B201C1012FC0001002594DF /* onboarding-material/slide1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide1.png"; sourceTree = "<group>"; };
+		B201C1032FC0001002594DF /* onboarding-material/slide2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide2.png"; sourceTree = "<group>"; };
+		B201C1052FC0001002594DF /* onboarding-material/slide3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide3.png"; sourceTree = "<group>"; };
+		B201C1072FC0001002594DF /* onboarding-material/slide4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide4.png"; sourceTree = "<group>"; };
+		B201C1092FC0001002594DF /* onboarding-material/slide5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/slide5.png"; sourceTree = "<group>"; };
+		B201C10B2FC0001002594DF /* onboarding-material/labely-isnt-just-an-app.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/labely-isnt-just-an-app.png"; sourceTree = "<group>"; };
+		B201C10D2FC0001002594DF /* onboarding-material/trusted-by-thousands.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/trusted-by-thousands.png"; sourceTree = "<group>"; };
+		B201C10F2FC0001002594DF /* onboarding-material/free-value-gift.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/free-value-gift.png"; sourceTree = "<group>"; };
+		B2C3D4E72F600002002594DF /* onboarding-material/labely-mascot-jumping.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "onboarding-material/labely-mascot-jumping.mov"; sourceTree = "<group>"; };
+		B2C3D4E92F600004002594DF /* onboarding-material/footer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/footer.png"; sourceTree = "<group>"; };
+		B2C3D4EB2F600004002594DF /* onboarding-material/labely-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/labely-logo.png"; sourceTree = "<group>"; };
 		B442D08FCB4A4DFC92A6DD51009C7AE5 /* Pleasent Poetry.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Pleasent Poetry.mp3"; path = "Audio/Pleasent Poetry.mp3"; sourceTree = "<group>"; };
+		C3D4E5F62F600006002594DF /* onboarding-material/bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/bg.png"; sourceTree = "<group>"; };
+		C3D4E5F82F600006002594DF /* onboarding-material/clean-living-girlie.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/clean-living-girlie.png"; sourceTree = "<group>"; };
+		C3D4E5FA2F600006002594DF /* onboarding-material/holidstic-health-bro.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/holidstic-health-bro.png"; sourceTree = "<group>"; };
+		C3D4E5FC2F600006002594DF /* onboarding-material/mama-bear-protector.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/mama-bear-protector.png"; sourceTree = "<group>"; };
+		C3D4E5FE2F600006002594DF /* onboarding-material/wellness-warrior-dad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/wellness-warrior-dad.png"; sourceTree = "<group>"; };
+		CF01000001FF0001002594DF /* onboarding-material/lowenergy.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/lowenergy.jpg"; sourceTree = "<group>"; };
+		CF01000003FF0001002594DF /* onboarding-material/anxiety.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/anxiety.jpg"; sourceTree = "<group>"; };
+		CF01000005FF0001002594DF /* onboarding-material/weightgain.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/weightgain.jpg"; sourceTree = "<group>"; };
+		CF01000007FF0001002594DF /* onboarding-material/skipfornow.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/skipfornow.jpg"; sourceTree = "<group>"; };
+		CF01000009FF0001002594DF /* onboarding-material/behavioralissues.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/behavioralissues.jpg"; sourceTree = "<group>"; };
+		CF0100000BFF0001002594DF /* onboarding-material/hyperactivity.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/hyperactivity.jpg"; sourceTree = "<group>"; };
+		CF0100000DFF0001002594DF /* onboarding-material/sleepproblems.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/sleepproblems.jpg"; sourceTree = "<group>"; };
+		CF0100000FFF0001002594DF /* onboarding-material/depression.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/depression.jpg"; sourceTree = "<group>"; };
+		CF01000011FF0001002594DF /* onboarding-material/brainfog.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "onboarding-material/brainfog.jpg"; sourceTree = "<group>"; };
+		DA1000012FF00001002594DF /* onboarding-material/girl1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/girl1.png"; sourceTree = "<group>"; };
+		DA1000032FF00001002594DF /* onboarding-material/girl2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/girl2.png"; sourceTree = "<group>"; };
+		DA1000052FF00001002594DF /* onboarding-material/boy1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/boy1.png"; sourceTree = "<group>"; };
+		DA1000072FF00001002594DF /* onboarding-material/boy2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/boy2.png"; sourceTree = "<group>"; };
+		DA1000092FF00001002594DF /* onboarding-material/mom1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/mom1.png"; sourceTree = "<group>"; };
+		DA10000B2FF00001002594DF /* onboarding-material/mom2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/mom2.png"; sourceTree = "<group>"; };
+		DA10000D2FF00001002594DF /* onboarding-material/dad1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/dad1.png"; sourceTree = "<group>"; };
+		DA10000F2FF00001002594DF /* onboarding-material/dad2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/dad2.png"; sourceTree = "<group>"; };
+		E1F203002F600050002594DF /* onboarding-material/live-healthier.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/live-healthier.png"; sourceTree = "<group>"; };
+		E1F203012F600050002594DF /* onboarding-material/better-sleep.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/better-sleep.png"; sourceTree = "<group>"; };
+		E1F203022F600050002594DF /* onboarding-material/clearer-thinking.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/clearer-thinking.png"; sourceTree = "<group>"; };
+		E1F203032F600050002594DF /* onboarding-material/more-energy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/more-energy.png"; sourceTree = "<group>"; };
+		E1F203042F600050002594DF /* onboarding-material/happier-skin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/happier-skin.png"; sourceTree = "<group>"; };
+		E1F203052F600050002594DF /* onboarding-material/healthier-family.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/healthier-family.png"; sourceTree = "<group>"; };
 		E964A22E3D7C4C25BE6D53920A85FD8B /* 10AM In The South.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "10AM In The South.mp3"; path = "Audio/10AM In The South.mp3"; sourceTree = "<group>"; };
 		F896B5472E8D8C6F001C63D8 /* RefundRequestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefundRequestService.swift; sourceTree = "<group>"; };
 		F8B4ABCB2E79BFFA00906F4B /* FirebaseMessagingDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseMessagingDelegate.swift; sourceTree = "<group>"; };
@@ -128,6 +233,25 @@
 		F8FE61112E75E42000014042 /* SerpAPIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerpAPIConfig.swift; sourceTree = "<group>"; };
 		F8FE61122E75E42000014042 /* StaticVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticVideoPlayer.swift; sourceTree = "<group>"; };
 		F8FE61132E75E42000014042 /* Subscriptions.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscriptions.storekit; sourceTree = "<group>"; };
+		FA1B2C3C2F700001002594DF /* onboarding-material/labely-pledge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/labely-pledge.png"; sourceTree = "<group>"; };
+		FA2C3D4A2F700002002594DF /* onboarding-material/ketchup-thenvsnow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/ketchup-thenvsnow.png"; sourceTree = "<group>"; };
+		FA2C3D4B2F700002002594DF /* onboarding-material/ritz-thenvsnow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/ritz-thenvsnow.png"; sourceTree = "<group>"; };
+		FA2C3D4C2F700002002594DF /* onboarding-material/panic-to-plan.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/panic-to-plan.png"; sourceTree = "<group>"; };
+		FA2C3D4D2F700002002594DF /* onboarding-material/#1-health-app.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/#1-health-app.png"; sourceTree = "<group>"; };
+		FA2C3D532F700002002594DF /* onboarding-material/inside-labely.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/inside-labely.png"; sourceTree = "<group>"; };
+		FB1A2B3A2F800001002594DF /* onboarding-material/low-energy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/low-energy.png"; sourceTree = "<group>"; };
+		FB1A2B3B2F800001002594DF /* onboarding-material/brain-fog.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/brain-fog.png"; sourceTree = "<group>"; };
+		FB1A2B3F2F800001002594DF /* onboarding-material/anxiety.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/anxiety.png"; sourceTree = "<group>"; };
+		FB1A2B412F800001002594DF /* onboarding-material/depression.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/depression.png"; sourceTree = "<group>"; };
+		FB1A2B432F800001002594DF /* onboarding-material/sleep-problems.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/sleep-problems.png"; sourceTree = "<group>"; };
+		FB1A2B452F800001002594DF /* onboarding-material/weight-gain.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/weight-gain.png"; sourceTree = "<group>"; };
+		FB1A2B472F800001002594DF /* onboarding-material/hyperactivity.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/hyperactivity.png"; sourceTree = "<group>"; };
+		FB1A2B492F800001002594DF /* onboarding-material/behavior-issues.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/behavior-issues.png"; sourceTree = "<group>"; };
+		FB1A2B4B2F800001002594DF /* onboarding-material/alleviate-your-symptoms.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/alleviate-your-symptoms.png"; sourceTree = "<group>"; };
+		FB1A2B4D2F800001002594DF /* onboarding-material/behavior-improvement.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/behavior-improvement.png"; sourceTree = "<group>"; };
+		FC1A2B3B2F900001002594DF /* onboarding-material/onboardingvideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "onboarding-material/onboardingvideo.mp4"; sourceTree = "<group>"; };
+		FC2B3C4C2FA00001002594DF /* onboarding-material/lays.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/lays.png"; sourceTree = "<group>"; };
+		FD1A2B3C2FB00001002594DF /* onboarding-material/siete-kettle-chips.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "onboarding-material/siete-kettle-chips.png"; sourceTree = "<group>"; };
 		PB1234612F100007006BF7E6 /* PriceBookModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceBookModels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -205,6 +329,67 @@
 		9B31140D2E283071006BF7E6 = {
 			isa = PBXGroup;
 			children = (
+				B2C3D4E72F600002002594DF /* onboarding-material/labely-mascot-jumping.mov */,
+				A12B051220260512002594DF /* onboarding-material/main.mp4 */,
+				C3D4E5F62F600006002594DF /* onboarding-material/bg.png */,
+				C3D4E5F82F600006002594DF /* onboarding-material/clean-living-girlie.png */,
+				C3D4E5FA2F600006002594DF /* onboarding-material/holidstic-health-bro.png */,
+				C3D4E5FC2F600006002594DF /* onboarding-material/mama-bear-protector.png */,
+				C3D4E5FE2F600006002594DF /* onboarding-material/wellness-warrior-dad.png */,
+				E1F203002F600050002594DF /* onboarding-material/live-healthier.png */,
+				E1F203012F600050002594DF /* onboarding-material/better-sleep.png */,
+				E1F203022F600050002594DF /* onboarding-material/clearer-thinking.png */,
+				E1F203032F600050002594DF /* onboarding-material/more-energy.png */,
+				E1F203042F600050002594DF /* onboarding-material/happier-skin.png */,
+				E1F203052F600050002594DF /* onboarding-material/healthier-family.png */,
+				FA1B2C3C2F700001002594DF /* onboarding-material/labely-pledge.png */,
+				FA2C3D4A2F700002002594DF /* onboarding-material/ketchup-thenvsnow.png */,
+				FA2C3D4B2F700002002594DF /* onboarding-material/ritz-thenvsnow.png */,
+				FA2C3D4C2F700002002594DF /* onboarding-material/panic-to-plan.png */,
+				FA2C3D4D2F700002002594DF /* onboarding-material/#1-health-app.png */,
+				FA2C3D532F700002002594DF /* onboarding-material/inside-labely.png */,
+				FB1A2B3A2F800001002594DF /* onboarding-material/low-energy.png */,
+				FB1A2B3B2F800001002594DF /* onboarding-material/brain-fog.png */,
+				FB1A2B3F2F800001002594DF /* onboarding-material/anxiety.png */,
+				FB1A2B412F800001002594DF /* onboarding-material/depression.png */,
+				FB1A2B432F800001002594DF /* onboarding-material/sleep-problems.png */,
+				FB1A2B452F800001002594DF /* onboarding-material/weight-gain.png */,
+				FB1A2B472F800001002594DF /* onboarding-material/hyperactivity.png */,
+				FB1A2B492F800001002594DF /* onboarding-material/behavior-issues.png */,
+				FB1A2B4B2F800001002594DF /* onboarding-material/alleviate-your-symptoms.png */,
+				FB1A2B4D2F800001002594DF /* onboarding-material/behavior-improvement.png */,
+				FC1A2B3B2F900001002594DF /* onboarding-material/onboardingvideo.mp4 */,
+				FC2B3C4C2FA00001002594DF /* onboarding-material/lays.png */,
+				FD1A2B3C2FB00001002594DF /* onboarding-material/siete-kettle-chips.png */,
+				AE2C3D4F2FE00001002594DF /* onboarding-material/slide0.png */,
+				B201C1012FC0001002594DF /* onboarding-material/slide1.png */,
+				B201C1032FC0001002594DF /* onboarding-material/slide2.png */,
+				B201C1052FC0001002594DF /* onboarding-material/slide3.png */,
+				B201C1072FC0001002594DF /* onboarding-material/slide4.png */,
+				B201C1092FC0001002594DF /* onboarding-material/slide5.png */,
+				B201C10B2FC0001002594DF /* onboarding-material/labely-isnt-just-an-app.png */,
+				B201C10D2FC0001002594DF /* onboarding-material/trusted-by-thousands.png */,
+				B201C10F2FC0001002594DF /* onboarding-material/free-value-gift.png */,
+				AE1B2C3C2FD00001002594DF /* onboarding-material/labely-says.png */,
+				DA1000012FF00001002594DF /* onboarding-material/girl1.png */,
+				DA1000032FF00001002594DF /* onboarding-material/girl2.png */,
+				DA1000052FF00001002594DF /* onboarding-material/boy1.png */,
+				DA1000072FF00001002594DF /* onboarding-material/boy2.png */,
+				DA1000092FF00001002594DF /* onboarding-material/mom1.png */,
+				DA10000B2FF00001002594DF /* onboarding-material/mom2.png */,
+				DA10000D2FF00001002594DF /* onboarding-material/dad1.png */,
+				DA10000F2FF00001002594DF /* onboarding-material/dad2.png */,
+				CF01000001FF0001002594DF /* onboarding-material/lowenergy.jpg */,
+				CF01000003FF0001002594DF /* onboarding-material/anxiety.jpg */,
+				CF01000005FF0001002594DF /* onboarding-material/weightgain.jpg */,
+				CF01000007FF0001002594DF /* onboarding-material/skipfornow.jpg */,
+				CF01000009FF0001002594DF /* onboarding-material/behavioralissues.jpg */,
+				CF0100000BFF0001002594DF /* onboarding-material/hyperactivity.jpg */,
+				CF0100000DFF0001002594DF /* onboarding-material/sleepproblems.jpg */,
+				CF0100000FFF0001002594DF /* onboarding-material/depression.jpg */,
+				CF01000011FF0001002594DF /* onboarding-material/brainfog.jpg */,
+				B2C3D4E92F600004002594DF /* onboarding-material/footer.png */,
+				B2C3D4EB2F600004002594DF /* onboarding-material/labely-logo.png */,
 				9B932B882E2972A300549AE9 /* Subscriptions.storekit */,
 				9B3114182E283071006BF7E6 /* Invoice */,
 				9B31142A2E283074006BF7E6 /* InvoiceTests */,
@@ -256,6 +441,7 @@
 				9B77E8D82E2CBA9A0025E339 /* ToolPromptService.swift */,
 				9B3114192E283071006BF7E6 /* InvoiceApp.swift */,
 				9B31141B2E283071006BF7E6 /* ContentView.swift */,
+				A1BE7E072F500003002594DF /* LabelyOnboardingRouting.swift */,
 				A1BE7E032F400001002594DF /* LabelyScanFeatures.swift */,
 				PB1234612F100007006BF7E6 /* PriceBookModels.swift */,
 				9B31141D2E283074006BF7E6 /* Assets.xcassets */,
@@ -452,6 +638,67 @@
 				1ABB18876684410BB4745E37B4F97AAD /* Run It Up.mp3 in Resources */,
 				F8F691EB2E7680F20073C7F7 /* ai-summary.png in Resources */,
 				5E3796BBEF284349845E6CB22F3AC65A /* Yacht Parties.mp3 in Resources */,
+				B2C3D4E82F600002002594DF /* onboarding-material/labely-mascot-jumping.mov in Resources */,
+				A12B051320260512002594DF /* onboarding-material/main.mp4 in Resources */,
+				B2C3D4EA2F600004002594DF /* onboarding-material/footer.png in Resources */,
+				B2C3D4EC2F600004002594DF /* onboarding-material/labely-logo.png in Resources */,
+				C3D4E5F72F600006002594DF /* onboarding-material/bg.png in Resources */,
+				C3D4E5F92F600006002594DF /* onboarding-material/clean-living-girlie.png in Resources */,
+				C3D4E5FB2F600006002594DF /* onboarding-material/holidstic-health-bro.png in Resources */,
+				C3D4E5FD2F600006002594DF /* onboarding-material/mama-bear-protector.png in Resources */,
+				C3D4E5FF2F600006002594DF /* onboarding-material/wellness-warrior-dad.png in Resources */,
+				E1F203062F600050002594DF /* onboarding-material/live-healthier.png in Resources */,
+				E1F203072F600050002594DF /* onboarding-material/better-sleep.png in Resources */,
+				E1F203082F600050002594DF /* onboarding-material/clearer-thinking.png in Resources */,
+				E1F203092F600050002594DF /* onboarding-material/more-energy.png in Resources */,
+				E1F2030A2F600050002594DF /* onboarding-material/happier-skin.png in Resources */,
+				E1F2030B2F600050002594DF /* onboarding-material/healthier-family.png in Resources */,
+				FA1B2C3D2F700001002594DF /* onboarding-material/labely-pledge.png in Resources */,
+				FA2C3D4E2F700002002594DF /* onboarding-material/ketchup-thenvsnow.png in Resources */,
+				FA2C3D4F2F700002002594DF /* onboarding-material/ritz-thenvsnow.png in Resources */,
+				FA2C3D502F700002002594DF /* onboarding-material/panic-to-plan.png in Resources */,
+				FA2C3D512F700002002594DF /* onboarding-material/#1-health-app.png in Resources */,
+				FA2C3D522F700002002594DF /* onboarding-material/inside-labely.png in Resources */,
+				FB1A2B3C2F800001002594DF /* onboarding-material/low-energy.png in Resources */,
+				FB1A2B3D2F800001002594DF /* onboarding-material/brain-fog.png in Resources */,
+				FB1A2B3E2F800001002594DF /* onboarding-material/anxiety.png in Resources */,
+				FB1A2B402F800001002594DF /* onboarding-material/depression.png in Resources */,
+				FB1A2B422F800001002594DF /* onboarding-material/sleep-problems.png in Resources */,
+				FB1A2B442F800001002594DF /* onboarding-material/weight-gain.png in Resources */,
+				FB1A2B462F800001002594DF /* onboarding-material/hyperactivity.png in Resources */,
+				FB1A2B482F800001002594DF /* onboarding-material/behavior-issues.png in Resources */,
+				FB1A2B4A2F800001002594DF /* onboarding-material/alleviate-your-symptoms.png in Resources */,
+				FB1A2B4C2F800001002594DF /* onboarding-material/behavior-improvement.png in Resources */,
+				FC1A2B3C2F900001002594DF /* onboarding-material/onboardingvideo.mp4 in Resources */,
+				FC2B3C4D2FA00001002594DF /* onboarding-material/lays.png in Resources */,
+				FD1A2B3D2FB00001002594DF /* onboarding-material/siete-kettle-chips.png in Resources */,
+				AE2C3D4E2FE00001002594DF /* onboarding-material/slide0.png in Resources */,
+				B201C1022FC0001002594DF /* onboarding-material/slide1.png in Resources */,
+				B201C1042FC0001002594DF /* onboarding-material/slide2.png in Resources */,
+				B201C1062FC0001002594DF /* onboarding-material/slide3.png in Resources */,
+				B201C1082FC0001002594DF /* onboarding-material/slide4.png in Resources */,
+				B201C10A2FC0001002594DF /* onboarding-material/slide5.png in Resources */,
+				B201C10C2FC0001002594DF /* onboarding-material/labely-isnt-just-an-app.png in Resources */,
+				B201C10E2FC0001002594DF /* onboarding-material/trusted-by-thousands.png in Resources */,
+				B201C1102FC0001002594DF /* onboarding-material/free-value-gift.png in Resources */,
+				AE1B2C3D2FD00001002594DF /* onboarding-material/labely-says.png in Resources */,
+				DA1000022FF00001002594DF /* onboarding-material/girl1.png in Resources */,
+				DA1000042FF00001002594DF /* onboarding-material/girl2.png in Resources */,
+				DA1000062FF00001002594DF /* onboarding-material/boy1.png in Resources */,
+				DA1000082FF00001002594DF /* onboarding-material/boy2.png in Resources */,
+				DA10000A2FF00001002594DF /* onboarding-material/mom1.png in Resources */,
+				DA10000C2FF00001002594DF /* onboarding-material/mom2.png in Resources */,
+				DA10000E2FF00001002594DF /* onboarding-material/dad1.png in Resources */,
+				DA1000102FF00001002594DF /* onboarding-material/dad2.png in Resources */,
+				CF01000000FF0001002594DF /* onboarding-material/lowenergy.jpg in Resources */,
+				CF01000002FF0001002594DF /* onboarding-material/anxiety.jpg in Resources */,
+				CF01000004FF0001002594DF /* onboarding-material/weightgain.jpg in Resources */,
+				CF01000006FF0001002594DF /* onboarding-material/skipfornow.jpg in Resources */,
+				CF01000008FF0001002594DF /* onboarding-material/behavioralissues.jpg in Resources */,
+				CF0100000AFF0001002594DF /* onboarding-material/hyperactivity.jpg in Resources */,
+				CF0100000CFF0001002594DF /* onboarding-material/sleepproblems.jpg in Resources */,
+				CF0100000EFF0001002594DF /* onboarding-material/depression.jpg in Resources */,
+				CF01000010FF0001002594DF /* onboarding-material/brainfog.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,6 +728,7 @@
 				3421BC522F176060002594DF /* TransactionUsageTracker.swift in Sources */,
 				9B77E8E02E2CBA9A0025E339 /* APIKeys.swift in Sources */,
 				9B31141C2E283071006BF7E6 /* ContentView.swift in Sources */,
+				A1BE7E082F500003002594DF /* LabelyOnboardingRouting.swift in Sources */,
 				A1BE7E042F400001002594DF /* LabelyScanFeatures.swift in Sources */,
 				PB1234622F100007006BF7E6 /* PriceBookModels.swift in Sources */,
 				F8F691ED2E788B260073C7F7 /* ConfettiSwiftUI.swift in Sources */,
@@ -661,7 +909,7 @@
 				CODE_SIGN_ENTITLEMENTS = Invoice/Invoice.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.7;
+				CURRENT_PROJECT_VERSION = 2.6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Invoice/Preview Content\"";
 				DEVELOPMENT_TEAM = W3WCKHSXJ5;
@@ -689,7 +937,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.7;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.labely.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -711,7 +959,7 @@
 				CODE_SIGN_ENTITLEMENTS = Invoice/Invoice.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.7;
+				CURRENT_PROJECT_VERSION = 2.6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Invoice/Preview Content\"";
 				DEVELOPMENT_TEAM = W3WCKHSXJ5;
@@ -739,7 +987,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 12.7;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.labely.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

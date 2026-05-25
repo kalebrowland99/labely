@@ -17,6 +17,10 @@ const fetch = require("node-fetch");
 // Load environment variables for Firebase Functions v2
 require("dotenv").config();
 
+// OpenAI proxy (server key: Firebase Secret `OPENAI_API_KEY`, see openaiProxy.js)
+const { openaiChatCompletion } = require("./openaiProxy");
+exports.openaiChatCompletion = openaiChatCompletion;
+
 // Initialize Firebase Admin
 initializeApp();
 const db = getFirestore();
@@ -986,7 +990,6 @@ exports.sendInvoice = onCall(
   {
     maxInstances: 10,
     allowInvalidAppCheckToken: true,
-    secrets: ["RESEND_API_KEY"],
   },
   async (request) => {
     const { invoiceId, recipientEmail, businessName, senderEmail } = request.data;

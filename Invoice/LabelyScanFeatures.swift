@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import ConfettiSwiftUI
 import AVFoundation
 import AudioToolbox
 import UIKit
@@ -34,6 +35,10 @@ struct LabelyProductInsight: Codable, Equatable {
     var additives: [AdditiveCard]
     var microplasticRisk: RiskBlock
     var heavyMetalRisk: HeavyMetalRisk
+    /// Open Food Facts `recalls_tags` only — count drives lawsuit line (no invented totals).
+    var recallTags: [String]
+    /// Short swap ideas from AI; merged with `fallbackHealthierAlternatives` when empty.
+    var healthierAlternatives: [String]
     
     struct HealthGrade: Codable, Equatable {
         var score: Int
@@ -99,7 +104,9 @@ struct LabelyProductInsight: Codable, Equatable {
         brandTrust: .init(rating: "Unknown", summary: "—"),
         additives: [],
         microplasticRisk: .init(level: "Unknown", note: "—"),
-        heavyMetalRisk: .init(level: "Unknown", score: 0, note: "—", metals: [])
+        heavyMetalRisk: .init(level: "Unknown", score: 0, note: "—", metals: []),
+        recallTags: [],
+        healthierAlternatives: []
     )
 }
 
@@ -149,6 +156,7 @@ final class LabelyScanHistoryStore: ObservableObject {
         )
         items = Array(next.prefix(20))
         persist()
+        Task { await LabelyPackImagePrefetch.prefetch(urlString: imageURL) }
     }
 
     func remove(barcode: String) {
@@ -393,6 +401,8 @@ enum LabelyProductLookupError: LocalizedError {
     case invalidBarcode
     /// e.g. SmartLabel / brand link encoded as a URL — not the striped UPC/EAN product number.
     case scannedLinkNotProductGtin
+    /// OFF returned 5xx or another server-side failure (not “unknown product”).
+    case openFoodFactsServiceError
     
     var errorDescription: String? {
         switch self {
@@ -402,6 +412,8 @@ enum LabelyProductLookupError: LocalizedError {
             return "That scan didn’t produce a valid product code. Try scanning the main pack barcode again."
         case .scannedLinkNotProductGtin:
             return "That scan looks like a website link, not the product number Open Food Facts needs. Use the tall striped barcode with the digits printed under it (UPC/EAN)—usually away from any square or link-style code on the label."
+        case .openFoodFactsServiceError:
+            return "Open Food Facts is temporarily unavailable or returned an error. Your product may still be listed—try again in a moment, or search the Food database tab."
         }
     }
 }
@@ -427,59 +439,142 @@ enum LabelyOFFFetch {
                 }
                 LabelyLog.off.debug("OFF no product for barcode=\(code, privacy: .public), trying next candidate")
             } catch {
-                // UPC/EAN candidates often include one representation OFF does not index (404).
-                // Keep trying the remaining candidates unless transport is clearly unavailable.
+                if error is CancellationError {
+                    throw error
+                }
+                if let lookup = error as? LabelyProductLookupError {
+                    LabelyLog.off.error("OFF lookup error barcode=\(code, privacy: .public): \(String(describing: lookup), privacy: .public)")
+                    throw lookup
+                }
                 let ns = error as NSError
                 if ns.domain == NSURLErrorDomain {
-                    switch ns.code {
-                    case NSURLErrorTimedOut, NSURLErrorNotConnectedToInternet, NSURLErrorNetworkConnectionLost, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost:
-                        LabelyLog.off.error("OFF transport failed barcode=\(code, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                        throw error
-                    default:
-                        LabelyLog.off.debug("OFF candidate failed (continuing) barcode=\(code, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                        continue
-                    }
+                    LabelyLog.off.error("OFF request failed barcode=\(code, privacy: .public) code=\(ns.code): \(error.localizedDescription, privacy: .public)")
+                    throw error
                 }
-                LabelyLog.off.debug("OFF candidate failed (continuing) barcode=\(code, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                continue
+                LabelyLog.off.error("OFF unexpected error barcode=\(code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                throw error
             }
         }
-        LabelyLog.off.error("OFF exhausted candidates, not in database raw=\(raw, privacy: .public)")
+        LabelyLog.off.error("OFF exhausted candidates (all misses), raw=\(raw, privacy: .public)")
         throw LabelyProductLookupError.notFoundInOpenFoodFacts
     }
     
-    /// `nil` = HTTP OK but product not in database for this code. Throws on network / parse failures.
+    /// `nil` = HTTP OK but product not in database for this code. Throws on network / parse failures or OFF 5xx (after retries).
     private static func fetchProductOnce(barcode: String) async throws -> [String: Any]? {
-        var components = URLComponents(string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json")!
-        components.queryItems = [URLQueryItem(name: "lc", value: "en")]
-        guard let url = components.url else {
-            throw URLError(.badURL)
+        let maxAttempts = 3
+        for attempt in 0..<maxAttempts {
+            var components = URLComponents(string: "https://world.openfoodfacts.org/api/v2/product/\(barcode).json")!
+            components.queryItems = [URLQueryItem(name: "lc", value: "en")]
+            guard let url = components.url else {
+                throw URLError(.badURL)
+            }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 25
+            let (data, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
+            }
+            if http.statusCode == 404 {
+                LabelyLog.off.debug("OFF HTTP 404 miss barcode=\(barcode, privacy: .public)")
+                return nil
+            }
+            if [500, 502, 503, 504].contains(http.statusCode) {
+                LabelyLog.off.error("OFF HTTP \(http.statusCode) barcode=\(barcode, privacy: .public) attempt=\(attempt + 1)/\(maxAttempts)")
+                if attempt + 1 < maxAttempts {
+                    let delayNs: UInt64 = 400_000_000 + UInt64(attempt) * 500_000_000
+                    try await Task.sleep(nanoseconds: delayNs)
+                    continue
+                }
+                throw LabelyProductLookupError.openFoodFactsServiceError
+            }
+            guard (200...299).contains(http.statusCode) else {
+                LabelyLog.off.error("OFF bad HTTP status=\(http.statusCode) for barcode=\(barcode, privacy: .public)")
+                throw LabelyProductLookupError.openFoodFactsServiceError
+            }
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                LabelyLog.off.error("OFF JSON parse failed barcode=\(barcode, privacy: .public)")
+                throw URLError(.cannotParseResponse)
+            }
+            let status = json["status"] as? Int ?? 0
+            let statusVerbose = json["status_verbose"] as? String ?? ""
+            guard status == 1, let product = json["product"] as? [String: Any] else {
+                LabelyLog.off.debug("OFF API miss barcode=\(barcode, privacy: .public) status=\(status) status_verbose=\(statusVerbose, privacy: .public)")
+                return nil
+            }
+            return product
         }
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 25
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        guard let http = resp as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+        throw LabelyProductLookupError.openFoodFactsServiceError
+    }
+    
+    /// Text search on Open Food Facts (same database as scans). Returns `"Brand — product name"` lines, excluding the scanned barcode.
+    static func searchAlternativeProductLines(product: [String: Any], excludingBarcode: String, maxResults: Int = 6) async -> [String] {
+        let excludeDigits = excludingBarcode.filter(\.isNumber)
+        var queries: [String] = []
+        let primaryName = ((product["product_name_en"] as? String) ?? (product["product_name"] as? String) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if primaryName.count >= 2 {
+            queries.append(String(primaryName.prefix(56)))
         }
-        if http.statusCode == 404 {
-            LabelyLog.off.debug("OFF HTTP 404 miss barcode=\(barcode, privacy: .public)")
-            return nil
+        if let tags = product["categories_tags"] as? [String] {
+            for tag in tags.reversed() {
+                let q = tag
+                    .replacingOccurrences(of: "en:", with: "")
+                    .replacingOccurrences(of: "fr:", with: "")
+                    .replacingOccurrences(of: "de:", with: "")
+                    .replacingOccurrences(of: "-", with: " ")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if q.count >= 4 && !queries.contains(where: { $0.caseInsensitiveCompare(q) == .orderedSame }) {
+                    queries.append(String(q.prefix(56)))
+                    break
+                }
+            }
         }
-        guard (200...299).contains(http.statusCode) else {
-            LabelyLog.off.error("OFF bad HTTP status=\(http.statusCode) for barcode=\(barcode, privacy: .public)")
-            throw URLError(.badServerResponse)
+        if let cats = product["categories"] as? String {
+            let parts = cats.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            if let last = parts.last, last.count >= 3,
+               !queries.contains(where: { $0.caseInsensitiveCompare(last) == .orderedSame }) {
+                queries.append(String(last.prefix(56)))
+            }
         }
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            LabelyLog.off.error("OFF JSON parse failed barcode=\(barcode, privacy: .public)")
-            throw URLError(.cannotParseResponse)
+        var collected: [String] = []
+        var seen = Set<String>()
+        for rawQ in queries {
+            let trimmed = rawQ.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { continue }
+            var c = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl")
+            c?.queryItems = [
+                URLQueryItem(name: "search_simple", value: "1"),
+                URLQueryItem(name: "action", value: "process"),
+                URLQueryItem(name: "json", value: "1"),
+                URLQueryItem(name: "page_size", value: "24"),
+                URLQueryItem(name: "search_terms", value: trimmed)
+            ]
+            guard let url = c?.url else { continue }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 22
+            guard let (data, resp) = try? await URLSession.shared.data(for: req),
+                  let http = resp as? HTTPURLResponse,
+                  (200...299).contains(http.statusCode),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let products = json["products"] as? [[String: Any]] else { continue }
+            for p in products {
+                let code = (p["code"] as? String ?? "").filter(\.isNumber)
+                if !excludeDigits.isEmpty, code == excludeDigits { continue }
+                let pname = (p["product_name"] as? String ?? p["product_name_en"] as? String ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !pname.isEmpty else { continue }
+                let brandRaw = (p["brands"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let brand = brandRaw.split(separator: ",").first.map { String($0).trimmingCharacters(in: .whitespaces) } ?? ""
+                let line = brand.isEmpty ? pname : "\(brand) — \(pname)"
+                let key = line.lowercased()
+                if seen.insert(key).inserted {
+                    collected.append(line)
+                }
+                if collected.count >= maxResults { return collected }
+            }
+            if collected.count >= maxResults { return collected }
         }
-        let status = json["status"] as? Int ?? 0
-        let statusVerbose = json["status_verbose"] as? String ?? ""
-        guard status == 1, let product = json["product"] as? [String: Any] else {
-            LabelyLog.off.debug("OFF API miss barcode=\(barcode, privacy: .public) status=\(status) status_verbose=\(statusVerbose, privacy: .public)")
-            return nil
-        }
-        return product
+        return collected
     }
     
     static func summaryLines(from product: [String: Any]) -> String {
@@ -491,6 +586,7 @@ enum LabelyOFFFetch {
         let nova = product["nova_group"] as? Int
         let additives = (product["additives_tags"] as? [String])?.joined(separator: ", ") ?? ""
         let analysis = (product["ingredients_analysis_tags"] as? [String])?.joined(separator: ", ") ?? ""
+        let recalls = (product["recalls_tags"] as? [String])?.joined(separator: ", ") ?? ""
         return """
         product_name_en: \(nameEn)
         product_name (may be another language): \(name)
@@ -498,6 +594,7 @@ enum LabelyOFFFetch {
         nova_group: \(nova.map(String.init) ?? "unknown")
         additives_tags: \(additives)
         ingredients_analysis_tags: \(analysis)
+        recalls_tags: \(recalls)
         ingredients_text_en: \(ingEn)
         ingredients_text (may be another language): \(ing)
         """
@@ -552,6 +649,17 @@ enum LabelyInsightEnrichment {
         q.containsSeedOil = q.containsSeedOil || seedOilHeuristic(ingForOil)
         o.quickOverview = q
         
+        o.recallTags = product["recalls_tags"] as? [String] ?? []
+        
+        if o.healthierAlternatives.isEmpty {
+            o.healthierAlternatives = Self.fallbackHealthierAlternatives(product: product, insight: o)
+        } else if o.healthierAlternatives.count < 3 {
+            let fb = Self.fallbackHealthierAlternatives(product: product, insight: o)
+            for line in fb where o.healthierAlternatives.count < 5 && !o.healthierAlternatives.contains(line) {
+                o.healthierAlternatives.append(line)
+            }
+        }
+        
         if o.healthGrade.score == 0, let n = o.quickOverview.novaGroup {
             o.healthGrade.score = scoreFromNova(n)
             o.healthGrade.label = labelForScore(o.healthGrade.score)
@@ -584,13 +692,65 @@ enum LabelyInsightEnrichment {
         }
     }
     
-    private static func seedOilHeuristic(_ text: String) -> Bool {
-        let t = text.lowercased()
-        let needles = [
+    private static func seedOilNeedles() -> [String] {
+        [
             "canola", "soybean oil", "corn oil", "vegetable oil", "sunflower oil", "safflower", "cottonseed oil", "grapeseed",
-            "huile de tournesol", "huile de colza", "huile de soja", "tournesol"
+            "huile de tournesol", "huile de colza", "huile de soja", "tournesol", "palm oil", "palm kernel"
         ]
-        return needles.contains { t.contains($0) }
+    }
+    
+    /// Distinct seed-oil-related substrings found in label text (for UI only).
+    static func seedOilMatchCount(in text: String) -> Int {
+        let t = text.lowercased()
+        var seen = Set<String>()
+        for needle in seedOilNeedles() where t.contains(needle) {
+            seen.insert(needle)
+        }
+        return seen.count
+    }
+    
+    static func fallbackHealthierAlternatives(product: [String: Any], insight: LabelyProductInsight) -> [String] {
+        var lines: [String] = []
+        let nova = insight.quickOverview.novaGroup ?? (product["nova_group"] as? Int)
+        if nova == 4 || insight.quickOverview.ultraProcessed {
+            lines.append("Try a simpler recipe in the same category: fewer emulsifiers, gums, and modified starches on the label.")
+        }
+        if insight.quickOverview.containsSeedOil {
+            lines.append("Swap to options that list olive oil, avocado oil, coconut oil, or butter instead of generic “vegetable oil” blends.")
+        }
+        if insight.quickOverview.harmfulAdditivesCount > 0 {
+            lines.append("Choose a competitor with fewer flagged additives (shorter list, fewer E-numbers near the top).")
+        }
+        if lines.count < 3 {
+            lines.append("Compare two similar products and pick the one with the shorter, more recognizable ingredient list.")
+            lines.append("Prefer plain bases (oats, yogurt, nut butters without flavorings) and add fruit or spices yourself.")
+        }
+        return Array(lines.prefix(5))
+    }
+    
+    /// Prefer real OFF product lines first, then AI / heuristic lines (deduped).
+    static func mergeAlternativeProductLines(openFoodFacts: [String], aiAndFallback: [String], max: Int) -> [String] {
+        var out: [String] = []
+        var seen = Set<String>()
+        for line in openFoodFacts {
+            let k = line.lowercased()
+            if seen.insert(k).inserted {
+                out.append(line)
+            }
+            if out.count >= max { return out }
+        }
+        for line in aiAndFallback {
+            let k = line.lowercased()
+            if seen.insert(k).inserted {
+                out.append(line)
+            }
+            if out.count >= max { return out }
+        }
+        return out
+    }
+    
+    private static func seedOilHeuristic(_ text: String) -> Bool {
+        seedOilMatchCount(in: text) > 0
     }
     
     private static func scoreFromNova(_ nova: Int) -> Int {
@@ -641,6 +801,8 @@ actor ProductInsightAnalyzer {
         - additives: up to 8 notable additives with plain-English descriptions and category (e.g. SWEETENER, EMULSIFIER). Use E-codes from tags when present.
         - brandTrust.rating: Clear | Orange | Red based on additive load and data quality; summary: 2–4 sentences, no fake legal claims.
         - microplasticRisk & heavyMetalRisk: conservative Unknown/Low unless clearly implied; notes must not cite fake studies.
+        - healthierAlternatives: 3–5 strings. Prefer **specific real brand + product names** that shoppers can find (e.g. “Bonne Maman — Intense Strawberry Spread”) when you are confident they match the **same category** as this product; ground them in categories/product type from context. If you cannot name real items safely, use short empty array and the app will fill from Open Food Facts search.
+        - recallTags: always [] (the app fills from Open Food Facts recalls_tags).
         Return ONLY valid minified JSON (no markdown):
         {
           "healthGrade": { "score": 0-100, "label": "Poor|Fair|Good|Excellent" },
@@ -662,7 +824,9 @@ actor ProductInsightAnalyzer {
             "score": 0-100,
             "note": String,
             "metals": [{ "symbol": String, "name": String or null, "level": "Low|Moderate|High|Very High", "note": String or null }]
-          }
+          },
+          "recallTags": [],
+          "healthierAlternatives": ["idea1", "idea2", "idea3"]
         }
         Barcode: \(barcode)
         Open Food Facts:
@@ -675,18 +839,40 @@ actor ProductInsightAnalyzer {
             temperature: 0.22
         )
         let jsonString = Self.extractJSON(from: raw)
-        guard let data = jsonString.data(using: .utf8) else {
+        guard var data = jsonString.data(using: .utf8) else {
             throw LabelyAnalysisError.badResponse
+        }
+        if var obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if obj["healthierAlternatives"] == nil { obj["healthierAlternatives"] = [] }
+            if obj["recallTags"] == nil { obj["recallTags"] = [] }
+            if let fixed = try? JSONSerialization.data(withJSONObject: obj) {
+                data = fixed
+            }
         }
         do {
             let decoded = try JSONDecoder().decode(LabelyProductInsight.self, from: data)
-            return LabelyInsightEnrichment.merge(insight: decoded, product: openFoodProduct)
+            let merged = LabelyInsightEnrichment.merge(insight: decoded, product: openFoodProduct)
+            return await Self.attachOpenFoodFactsAlternatives(barcode: barcode, product: openFoodProduct, merged: merged)
         } catch {
             LabelyLog.ai.error("AI JSON decode failed, using fallback: \(error.localizedDescription, privacy: .public)")
             var fb = Self.fallbackInsight(barcode: barcode, raw: raw)
             fb = LabelyInsightEnrichment.merge(insight: fb, product: openFoodProduct)
-            return fb
+            return await Self.attachOpenFoodFactsAlternatives(barcode: barcode, product: openFoodProduct, merged: fb)
         }
+    }
+    
+    private static func attachOpenFoodFactsAlternatives(barcode: String, product: [String: Any], merged: LabelyProductInsight) async -> LabelyProductInsight {
+        let off = await LabelyOFFFetch.searchAlternativeProductLines(product: product, excludingBarcode: barcode, maxResults: 6)
+        var o = merged
+        o.healthierAlternatives = LabelyInsightEnrichment.mergeAlternativeProductLines(
+            openFoodFacts: off,
+            aiAndFallback: merged.healthierAlternatives,
+            max: 6
+        )
+        if o.healthierAlternatives.isEmpty {
+            o.healthierAlternatives = LabelyInsightEnrichment.fallbackHealthierAlternatives(product: product, insight: o)
+        }
+        return o
     }
     
     private static func fallbackInsight(barcode: String, raw: String) -> LabelyProductInsight {
@@ -990,30 +1176,20 @@ enum LabelyProductImage {
 // MARK: - Results UI
 
 private struct LabelyScanResultsBackground: View {
+    /// Matches autoslideshow `LabelySlide`: cream base + hills photo.
+    private let pageCream = Color(red: 0.9569, green: 0.9412, blue: 0.9020)
+
     var body: some View {
         ZStack {
-            Color.white
-            RadialGradient(
-                colors: [
-                    Color(red: 1.0, green: 0.93, blue: 0.88).opacity(0.55),
-                    Color.white.opacity(0)
-                ],
-                center: UnitPoint(x: 0.92, y: 0.06),
-                startRadius: 20,
-                endRadius: 380
-            )
-            RadialGradient(
-                colors: [
-                    Color(red: 0.86, green: 0.88, blue: 0.91).opacity(0.5),
-                    Color.white.opacity(0)
-                ],
-                center: UnitPoint(x: 0.06, y: 0.10),
-                startRadius: 30,
-                endRadius: 340
-            )
+            pageCream
+            Image("labely_scan_hills_bg")
+                .resizable()
+                .scaledToFill()
+                .clipped()
+                .opacity(0.95)
             LinearGradient(
-                colors: [Color.white.opacity(0), Color.white],
-                startPoint: UnitPoint(x: 0.5, y: 0.32),
+                colors: [Color.white.opacity(0), Color.white.opacity(0.35)],
+                startPoint: UnitPoint(x: 0.5, y: 0.28),
                 endPoint: .bottom
             )
         }
@@ -1087,7 +1263,7 @@ private struct LabelyHealthScoreRing: View {
     let tint: Color
     private let size: CGFloat = 84
     private let lineWidth: CGFloat = 5
-    
+
     var body: some View {
         ZStack {
             Circle()
@@ -1109,6 +1285,26 @@ private struct LabelyHealthScoreRing: View {
     }
 }
 
+// MARK: - Scan result “slide” layout (autoslideshow `LabelySlide` parity)
+
+private enum LabelyScanSlideStyle {
+    static let title = Color(red: 0.102, green: 0.102, blue: 0.102)
+    static let textMuted = Color(red: 0.557, green: 0.557, blue: 0.576)
+    static let textBody = Color(red: 0.235, green: 0.235, blue: 0.263)
+    static let scoreGreen = Color(red: 47 / 255, green: 90 / 255, blue: 65 / 255)
+    static let rowTitleGreen = Color(red: 39 / 255, green: 75 / 255, blue: 54 / 255)
+    static let dangerPillBg = Color(red: 1.0, green: 0.914, blue: 0.886)
+    static let dangerPillText = Color(red: 178 / 255, green: 58 / 255, blue: 45 / 255)
+    static let safePillBg = Color(red: 0.93, green: 0.97, blue: 0.94)
+    static let safePillText = Color(red: 0.18, green: 0.45, blue: 0.32)
+    static let lawsuitBg = Color(red: 1.0, green: 0.976, blue: 0.902)
+    static let lawsuitBorder = Color(red: 0.949, green: 0.824, blue: 0.420)
+    static let lawsuitText = Color(red: 92 / 255, green: 74 / 255, blue: 18 / 255)
+    static let lawsuitNeutralBg = Color(red: 0.96, green: 0.97, blue: 0.98)
+    static let lawsuitNeutralBorder = Color.black.opacity(0.08)
+    static let lawsuitNeutralText = Color(red: 0.25, green: 0.27, blue: 0.30)
+}
+
 struct ProductScanResultView: View {
     let barcode: String
     let productName: String
@@ -1123,34 +1319,57 @@ struct ProductScanResultView: View {
     @State private var metalExpanded = false
     @State private var showDeleteConfirm = false
     @State private var helpTopic: LabelyResultsHelpTopic?
-    
+    @State private var scanSeedOilsExpanded = false
+    @State private var scanAdditivesExpanded = false
+    @State private var showBrandAnalysisSheet = false
+    @State private var resultsConfettiTrigger = 0
+    @State private var lastIsLoadingInsight = true
+
     var body: some View {
         NavigationView {
             ZStack {
                 LabelyScanResultsBackground()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        headerCard
-                        if isLoadingInsight {
-                            loadingBanner
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            if isLoadingInsight {
+                                loadingBanner
+                            }
+
+                            scanSlideHeroHeader
+                            scanLogoAnalysisCard
+                            healthierAlternativesSection
+                            scanLawsuitBubble
+                            scanIngredientCompareRow(proxy: proxy)
+                            scanSeedOilsRow(proxy: proxy)
+                            scanAdditivesRow(proxy: proxy)
+
+                            Text("Full breakdown")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(LabelyScanSlideStyle.rowTitleGreen)
+                                .padding(.top, 4)
+
+                            Group {
+                                quickOverviewSection
+                                ingredientsToggle
+                                brandTrustSection
+                                additivesSection
+                                microplasticSection
+                                heavySection
+                            }
+                            .redacted(reason: isLoadingInsight ? .placeholder : [])
+                            .disabled(isLoadingInsight)
                         }
-                        Group {
-                            quickOverviewSection
-                            ingredientsToggle
-                            brandTrustSection
-                            additivesSection
-                            microplasticSection
-                            heavySection
-                        }
-                        .redacted(reason: isLoadingInsight ? .placeholder : [])
-                        .disabled(isLoadingInsight)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 52)
+                        .padding(.bottom, 100)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
                 }
             }
             .navigationTitle("Results")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color(red: 0.98, green: 0.975, blue: 0.955), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") { onDone() }
@@ -1197,7 +1416,157 @@ struct ProductScanResultView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showBrandAnalysisSheet) {
+                NavigationView {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 22) {
+                            Text(analysisBodyText)
+                                .font(.body)
+                                .foregroundColor(LabelyScanSlideStyle.textBody)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            if !insight.recallTags.isEmpty {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("Open Food Facts — recall tags")
+                                        .font(.headline)
+                                        .foregroundColor(LabelyScanSlideStyle.title)
+                                    Text("These tags come from the Open Food Facts database for this barcode—not a court docket.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    ForEach(insight.recallTags, id: \.self) { tag in
+                                        Text(labelyHumanizedOFFTag(tag))
+                                            .font(.subheadline)
+                                            .foregroundColor(LabelyScanSlideStyle.textBody)
+                                    }
+                                }
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.orange.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Brand & safety report examples")
+                                    .font(.headline)
+                                    .foregroundColor(LabelyScanSlideStyle.title)
+                                Text("Illustrative issues Labely tracks in the news and independent testing—shown for context, not as a claim that this exact product was involved.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                ForEach(LabelyBrandReports.samples) { report in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            Text(report.brandName)
+                                                .font(.subheadline.weight(.bold))
+                                            Spacer(minLength: 8)
+                                            Text(report.severity)
+                                                .font(.caption2.weight(.bold))
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(Color.orange.opacity(0.15))
+                                                .clipShape(Capsule())
+                                        }
+                                        Text(report.headline)
+                                            .font(.caption)
+                                            .foregroundColor(LabelyScanSlideStyle.textBody)
+                                        Text(report.kind.uppercased())
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color(.systemGray6).opacity(0.6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                            }
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("At a glance")
+                                    .font(.headline)
+                                    .foregroundColor(LabelyScanSlideStyle.title)
+                                analysisSignalRow(title: "Harmful additives flagged", value: "\(insight.quickOverview.harmfulAdditivesCount)")
+                                analysisSignalRow(title: "Seed oils detected", value: insight.quickOverview.containsSeedOil ? "Yes" : "No")
+                                analysisSignalRow(title: "Ingredients listed", value: "\(insight.quickOverview.totalIngredients)")
+                                analysisSignalRow(
+                                    title: "Ultra-processed",
+                                    value: insight.quickOverview.ultraProcessed
+                                        ? "Yes (NOVA \(insight.quickOverview.novaGroup.map(String.init) ?? "?"))"
+                                        : "No"
+                                )
+                                analysisSignalRow(title: "Brand transparency", value: insight.brandTrust.rating)
+                                analysisSignalRow(title: "Microplastics", value: insight.microplasticRisk.level)
+                                analysisSignalRow(title: "Heavy metals", value: insight.heavyMetalRisk.level)
+                            }
+                            .padding(14)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemGray6).opacity(0.55))
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(20)
+                        .padding(.bottom, 28)
+                    }
+                    .background(Color.white)
+                    .navigationTitle("Labely’s analysis")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showBrandAnalysisSheet = false }
+                        }
+                    }
+                }
+            }
+            .confettiCannon(
+                trigger: $resultsConfettiTrigger,
+                num: 25,
+                colors: [.green, .blue, .purple, .pink],
+                confettiSize: 8,
+                radius: 120
+            )
+            .zIndex(1000)
+            .onAppear {
+                if !isLoadingInsight {
+                    triggerResultsConfetti()
+                }
+                lastIsLoadingInsight = isLoadingInsight
+            }
+            .onChange(of: isLoadingInsight) { newValue in
+                if lastIsLoadingInsight && !newValue {
+                    triggerResultsConfetti()
+                }
+                lastIsLoadingInsight = newValue
+            }
         }
+    }
+
+    private func triggerResultsConfetti() {
+        resultsConfettiTrigger += 1
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    private var analysisBodyText: String {
+        let s = insight.brandTrust.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !s.isEmpty, s != "—" { return s }
+        return "Labely summarizes how this product looks in public label data—additives, processing hints, and transparency signals. Run another scan after the analysis finishes for a fuller write-up."
+    }
+
+    private func analysisSignalRow(title: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Spacer(minLength: 12)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(LabelyScanSlideStyle.title)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private func labelyHumanizedOFFTag(_ tag: String) -> String {
+        tag.replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     private func helpButton(_ topic: LabelyResultsHelpTopic) -> some View {
@@ -1228,58 +1597,484 @@ struct ProductScanResultView: View {
         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 3)
     }
     
-    private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 16) {
-                AsyncImage(url: imageURL) { phase in
-                    switch phase {
-                    case .success(let img): img.resizable().scaledToFill()
-                    default: Color(.systemGray5)
-                    }
+    private var scanSlideHeroHeader: some View {
+        HStack(alignment: .top, spacing: 10) {
+            LabelyCachedRemoteImage(url: imageURL, placeholderFill: Color(.systemGray5))
+                .frame(width: 96, height: 96)
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .shadow(color: .black.opacity(0.10), radius: 9, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(productName)
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundColor(LabelyScanSlideStyle.title)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.88)
+
+                if let b = brand, !b.isEmpty {
+                    Text(b)
+                        .font(.system(size: 13))
+                        .foregroundColor(LabelyScanSlideStyle.textMuted)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 }
-                .frame(width: 88, height: 88)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                
-                Spacer(minLength: 8)
-                
-                HStack(spacing: 10) {
+
+                HStack(alignment: .center, spacing: 6) {
+                    Text("\(insight.healthGrade.score)/100")
+                        .font(.system(size: 14, weight: .heavy))
+                        .foregroundColor(gradeColor)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                    Text(displayVerdictWord)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(gradeColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Circle()
+                        .fill(gradeColor.opacity(0.95))
+                        .frame(width: 8, height: 8)
+                    Spacer(minLength: 0)
                     helpButton(.overallGrade)
-                    LabelyHealthScoreRing(score: insight.healthGrade.score, tint: gradeColor)
                 }
-            }
-            
-            Text(productName)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.primary)
-            
-            if let b = brand, !b.isEmpty {
-                Text(b)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text("\(insight.healthGrade.label) Health Grade")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(gradeColor.opacity(0.14))
+
+                Text(gradeCapsuleTitle)
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(gradeColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.62)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(gradeColor.opacity(0.14))
                     .clipShape(Capsule())
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            LabelyHealthScoreRing(score: insight.healthGrade.score, tint: gradeColor)
+                .scaleEffect(0.78)
+                .accessibilityHidden(true)
         }
-        .padding(18)
+        .padding(16)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.07), radius: 12, x: 0, y: 4)
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .disabled(isLoadingInsight)
     }
-    
+
+    private var gradeCapsuleTitle: String {
+        let l = insight.healthGrade.label.trimmingCharacters(in: .whitespacesAndNewlines)
+        if l.isEmpty || l == "—" { return "Health grade" }
+        return "\(l) Health Grade"
+    }
+
     private var gradeColor: Color {
         let s = insight.healthGrade.score
         if s >= 70 { return Color(red: 0.2, green: 0.7, blue: 0.35) }
-        if s >= 45 { return Color.orange }
-        return Color.red
+        if s >= 45 { return .orange }
+        return .red
+    }
+
+    private var displayVerdictWord: String {
+        let raw = insight.healthGrade.label.trimmingCharacters(in: .whitespacesAndNewlines)
+        if raw.lowercased().contains("great") { return "Excellent" }
+        return raw.isEmpty ? "—" : raw
+    }
+
+    private var scanLogoAnalysisCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Spacer(minLength: 0)
+                Image("labely_scan_wordmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 56)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel("Labely")
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity)
+
+            let preview = analysisPreviewLine
+            Text(preview)
+                .font(.system(size: 13))
+                .foregroundColor(LabelyScanSlideStyle.textBody)
+                .lineSpacing(2)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                showBrandAnalysisSheet = true
+            } label: {
+                (Text("Read more")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(LabelyScanSlideStyle.textBody)
+                + Text("..")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(LabelyScanSlideStyle.textBody))
+            }
+            .buttonStyle(.plain)
+            .disabled(isLoadingInsight)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 11, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.black.opacity(0.04), lineWidth: 1)
+        )
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+    }
+
+    private var analysisPreviewLine: String {
+        let s = insight.brandTrust.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !s.isEmpty, s != "—" { return s }
+        return "This product’s full Labely write-up will appear here once analysis finishes."
+    }
+
+    private var healthierAlternativesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Text("🌿")
+                    .font(.system(size: 26))
+                Text("Healthier alternatives")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(LabelyScanSlideStyle.rowTitleGreen)
+                Spacer(minLength: 0)
+            }
+            ForEach(Array(insight.healthierAlternatives.enumerated()), id: \.offset) { _, line in
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 15))
+                        .foregroundColor(LabelyScanSlideStyle.scoreGreen)
+                        .frame(width: 20, alignment: .center)
+                    Text(line)
+                        .font(.subheadline)
+                        .foregroundColor(LabelyScanSlideStyle.textBody)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Text("Names from Open Food Facts search in this category (availability varies by store and region).")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 3)
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.black.opacity(0.04), lineWidth: 1)
+        )
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .id("alternativesBlock")
+    }
+
+    private var scanLawsuitBubble: some View {
+        let k = insight.recallTags.count
+        return Button {
+            showBrandAnalysisSheet = true
+        } label: {
+            Group {
+                if k == 0 {
+                    (Text("No recalls listed for this barcode on Open Food Facts. Tap ")
+                        + Text("here")
+                        .underline()
+                        .fontWeight(.bold)
+                        + Text(" for brand notes and example third-party reports."))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(LabelyScanSlideStyle.lawsuitNeutralText)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(LabelyScanSlideStyle.lawsuitNeutralBg)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(LabelyScanSlideStyle.lawsuitNeutralBorder, lineWidth: 1)
+                    )
+                } else {
+                    let noun = k == 1 ? "recall tag" : "recall tags"
+                    (Text("⚠️ \(k) Open Food Facts \(noun). Tap ")
+                        + Text("here")
+                        .underline()
+                        .fontWeight(.bold)
+                        + Text(" for details and brand report examples."))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(LabelyScanSlideStyle.lawsuitText)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(LabelyScanSlideStyle.lawsuitBg)
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(LabelyScanSlideStyle.lawsuitBorder, lineWidth: 1)
+                    )
+                }
+            }
+            .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .disabled(isLoadingInsight)
+    }
+
+    private func scanIngredientCompareRow(proxy: ScrollViewProxy) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                showIngredients = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    proxy.scrollTo("ingredientsBlock", anchor: .top)
+                }
+            }
+        } label: {
+            scanMetricChrome {
+                HStack(spacing: 10) {
+                    Text("🌿")
+                        .font(.system(size: 28))
+                        .frame(width: 36, height: 36)
+                    Text("Compare full ingredient list")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(LabelyScanSlideStyle.rowTitleGreen)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(LabelyScanSlideStyle.textMuted)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.black.opacity(0.04), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .disabled(isLoadingInsight)
+    }
+
+    private func scanSeedOilsRow(proxy: ScrollViewProxy) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.spring(response: 0.28)) { scanSeedOilsExpanded.toggle() }
+            } label: {
+                scanMetricChrome {
+                    HStack(spacing: 10) {
+                        Image("labely_scan_seed_oils_icon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 36, height: 36)
+                        Text("Seed oils (\(seedOilTitleFragment))")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(LabelyScanSlideStyle.rowTitleGreen)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                        Spacer(minLength: 0)
+                        scanRiskPill(text: seedOilPillTitle, risky: insight.quickOverview.containsSeedOil)
+                        Image(systemName: scanSeedOilsExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(LabelyScanSlideStyle.textMuted)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            if scanSeedOilsExpanded {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(insight.quickOverview.containsSeedOil
+                         ? "Common industrial seed oils were detected in the ingredient text. Compare to products that use olive or avocado oil if you are avoiding these."
+                         : "No obvious seed-oil signals were found in the ingredient text Labely parsed—but always read the full label.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 6) {
+                        helpButton(.seedOils)
+                        Text("Learn more")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(LabelyScanSlideStyle.scoreGreen)
+                    }
+                    Button {
+                        withAnimation(.spring(response: 0.28)) { scanSeedOilsExpanded = false }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                            withAnimation(.easeInOut(duration: 0.35)) {
+                                proxy.scrollTo("quickOverviewBlock", anchor: .top)
+                            }
+                        }
+                    } label: {
+                        Text("Open full Quick Overview")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(LabelyScanSlideStyle.scoreGreen)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 12)
+            }
+        }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.black.opacity(0.04), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .disabled(isLoadingInsight)
+    }
+
+    private var seedOilTitleFragment: String {
+        let ingBlob = insight.ingredientsList.joined(separator: ", ")
+        let n = LabelyInsightEnrichment.seedOilMatchCount(in: ingBlob)
+        if !insight.quickOverview.containsSeedOil && n == 0 { return "None" }
+        if n == 0 { return "Detected" }
+        return "\(n)"
+    }
+
+    private var seedOilPillTitle: String {
+        insight.quickOverview.containsSeedOil ? "Dangerous" : "None"
+    }
+
+    private var additivesTitleFragment: String {
+        let n = insight.additives.count
+        if n == 0 && insight.quickOverview.harmfulAdditivesCount == 0 { return "None" }
+        if n > 0 { return "\(n)" }
+        if insight.quickOverview.harmfulAdditivesCount > 0 { return "\(insight.quickOverview.harmfulAdditivesCount)" }
+        return "None"
+    }
+
+    private func scanAdditivesRow(proxy: ScrollViewProxy) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.spring(response: 0.28)) { scanAdditivesExpanded.toggle() }
+            } label: {
+                scanMetricChrome {
+                    HStack(spacing: 10) {
+                        Image("labely_scan_additives_icon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 36, height: 36)
+                        Text("Additives (\(additivesTitleFragment))")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(LabelyScanSlideStyle.rowTitleGreen)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                        Spacer(minLength: 0)
+                        scanRiskPill(text: additivesPillTitle, risky: additivesPillRisky)
+                        Image(systemName: scanAdditivesExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(LabelyScanSlideStyle.textMuted)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            if scanAdditivesExpanded {
+                VStack(alignment: .leading, spacing: 10) {
+                    if insight.additives.isEmpty {
+                        Text("No additive detail returned—try a product with richer Open Food Facts data.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(insight.additives.prefix(6)) { a in
+                            HStack(alignment: .top) {
+                                Text(a.name + (a.code.map { " (\($0))" } ?? ""))
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer(minLength: 6)
+                                Text(a.risk)
+                                    .font(.caption2.weight(.bold))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(riskTint(a.risk).opacity(0.15))
+                                    .foregroundColor(riskTint(a.risk))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                    }
+                    HStack(spacing: 6) {
+                        helpButton(.harmfulAdditives)
+                        Text("Learn more")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(LabelyScanSlideStyle.scoreGreen)
+                    }
+                    Button {
+                        withAnimation(.spring(response: 0.28)) { scanAdditivesExpanded = false }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                            withAnimation(.easeInOut(duration: 0.35)) {
+                                proxy.scrollTo("additivesBreakdownBlock", anchor: .top)
+                            }
+                        }
+                    } label: {
+                        Text("Open full additives breakdown")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(LabelyScanSlideStyle.scoreGreen)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 12)
+            }
+        }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.black.opacity(0.04), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .redacted(reason: isLoadingInsight ? .placeholder : [])
+        .disabled(isLoadingInsight)
+    }
+
+    private var additivesPillRisky: Bool {
+        additivesPillTitle != "Low risk"
+    }
+
+    private var additivesPillTitle: String {
+        let h = insight.quickOverview.harmfulAdditivesCount
+        let n = insight.additives.count
+        if h >= 4 || n >= 10 { return "Cancerous" }
+        if h >= 1 || n >= 3 { return "Concerning" }
+        return "Low risk"
+    }
+
+    private func scanMetricChrome<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private func scanRiskPill(text: String, risky: Bool) -> some View {
+        HStack(spacing: 4) {
+            Text(text)
+                .font(.system(size: 12, weight: .bold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+            if risky {
+                Text("⚠️")
+                    .font(.system(size: 11))
+            }
+        }
+        .foregroundColor(risky ? LabelyScanSlideStyle.dangerPillText : LabelyScanSlideStyle.safePillText)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(risky ? LabelyScanSlideStyle.dangerPillBg : LabelyScanSlideStyle.safePillBg)
+        .clipShape(Capsule())
     }
     
     private var quickOverviewSection: some View {
@@ -1294,7 +2089,7 @@ struct ProductScanResultView: View {
                 overviewRow(icon: "exclamationmark.triangle.fill", title: "Harmful additives", value: "\(insight.quickOverview.harmfulAdditivesCount)", valueTint: .orange, help: .harmfulAdditives)
                 overviewRow(icon: "leaf.fill", title: "Seed oil", value: insight.quickOverview.containsSeedOil ? "Yes" : "No", valueTint: insight.quickOverview.containsSeedOil ? .orange : Color(red: 0.2, green: 0.65, blue: 0.38), help: .seedOils)
                 overviewRow(icon: "list.bullet", title: "Total ingredients", value: "\(insight.quickOverview.totalIngredients)", valueTint: Color(red: 0.2, green: 0.65, blue: 0.38), help: .ingredientCount)
-                overviewRow(icon: "gearshape.2.fill", title: "Ultra processed", value: insight.quickOverview.ultraProcessed ? "Yes (NOVA \(insight.quickOverview.novaGroup.map(String.init) ?? "?"))" : "No", valueTint: insight.quickOverview.ultraProcessed ? .red : Color(red: 0.2, green: 0.65, blue: 0.38), help: .ultraProcessedNova)
+                overviewRow(icon: "gearshape.2.fill", title: "Ultra processed", value: ultraProcessedQuickOverviewValue, valueTint: insight.quickOverview.ultraProcessed ? .red : Color(red: 0.2, green: 0.65, blue: 0.38), help: .ultraProcessedNova)
                 naturalBar
                     .padding(.top, 22)
             }
@@ -1303,6 +2098,13 @@ struct ProductScanResultView: View {
             .clipShape(RoundedRectangle(cornerRadius: 18))
             .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         }
+        .id("quickOverviewBlock")
+    }
+    
+    private var ultraProcessedQuickOverviewValue: String {
+        guard insight.quickOverview.ultraProcessed else { return "No" }
+        let n = insight.quickOverview.novaGroup.map(String.init) ?? "?"
+        return "Yes\u{00A0}(NOVA\u{00A0}\(n))"
     }
     
     private var naturalBar: some View {
@@ -1352,7 +2154,7 @@ struct ProductScanResultView: View {
     }
     
     private func overviewRow(icon: String, title: String, value: String, valueTint: Color, help: LabelyResultsHelpTopic? = nil) -> some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 10) {
             Image(systemName: icon)
                 .foregroundColor(valueTint)
                 .font(.system(size: 17))
@@ -1360,11 +2162,14 @@ struct ProductScanResultView: View {
             HStack(spacing: 6) {
                 Text(title)
                     .font(.subheadline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
                 if let help {
                     helpButton(help)
                 }
             }
-            Spacer(minLength: 8)
+            .layoutPriority(-1)
+            Spacer(minLength: 6)
             Text(value)
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 12)
@@ -1372,6 +2177,9 @@ struct ProductScanResultView: View {
                 .background(valueTint.opacity(0.13))
                 .foregroundColor(valueTint)
                 .clipShape(Capsule())
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+                .layoutPriority(1)
         }
     }
     
@@ -1408,6 +2216,7 @@ struct ProductScanResultView: View {
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 3)
+        .id("ingredientsBlock")
     }
     
     /// Split ingredient lines into “natural” vs more processed/additive-like for tag display.
@@ -1616,6 +2425,7 @@ struct ProductScanResultView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(red: 0.94, green: 0.93, blue: 0.98))
         .clipShape(RoundedRectangle(cornerRadius: 18))
+        .id("additivesBreakdownBlock")
     }
     
     private func riskTint(_ r: String) -> Color {
@@ -1821,12 +2631,13 @@ struct ProductScanResultView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.bottom, 28)
             }
         }
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 3)
+        .padding(.bottom, 14)
     }
     
     private var heavyMetalAccent: Color {
@@ -2087,6 +2898,10 @@ struct LabelyStreamingScanSheet: View {
                 isLoadingInsight = false
                 loadError = nil
             }
+            let prefetchURL = LabelyProductImage.url(from: cached.product)
+            Task.detached(priority: .userInitiated) {
+                await LabelyPackImagePrefetch.prefetch(url: prefetchURL)
+            }
             recordHistoryIfPossible(barcode: cached.barcode, product: cached.product, score: cached.insight.healthGrade.score)
             return
         }
@@ -2105,6 +2920,10 @@ struct LabelyStreamingScanSheet: View {
             await MainActor.run {
                 productDict = dict
                 resolvedBarcode = resolved
+            }
+            let packURL = LabelyProductImage.url(from: dict)
+            Task.detached(priority: .userInitiated) {
+                await LabelyPackImagePrefetch.prefetch(url: packURL)
             }
             
             let computed = try await ProductInsightAnalyzer.shared.analyze(barcode: resolved, openFoodProduct: dict)
@@ -2130,7 +2949,7 @@ struct LabelyStreamingScanSheet: View {
 // MARK: - Cached full analysis (instant reopen; avoids repeat OFF + AI calls)
 
 private enum LabelyAnalyzeCache {
-    private static let blobKey = "labely_ai_scan_cache_blob_v2"
+    private static let blobKey = "labely_ai_scan_cache_blob_v3"
     private static let ttl: TimeInterval = 86400 * 14
     private static let maxEntries = 28
     
@@ -2376,6 +3195,8 @@ func labelyUserFacingScanError(_ error: Error) -> String {
             return "The request timed out. Try again in a moment."
         case NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost:
             return "Couldn’t reach Open Food Facts. Check your connection and try again."
+        case NSURLErrorBadServerResponse, NSURLErrorCannotParseResponse:
+            return LabelyProductLookupError.openFoodFactsServiceError.errorDescription ?? ns.localizedDescription
         case NSURLErrorResourceUnavailable:
             return LabelyProductLookupError.notFoundInOpenFoodFacts.errorDescription ?? ns.localizedDescription
         default:

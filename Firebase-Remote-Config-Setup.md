@@ -33,7 +33,13 @@ Your app now uses **Firebase Firestore** to control paywall behavior remotely. Y
 | Field | Type | Value | Description |
 |-------|------|-------|-------------|
 | `hardpaywall` | boolean | `true` | Controls paywall mode |
+| `twopaywall` | boolean | `false` | Two-plan paywall UI on final onboarding step |
+| `shortonboarding` | boolean | `false` | Short v2 onboarding (few slides, then paywall) |
 | `updatedAt` | timestamp | `serverTimestamp()` | Tracks when config was last updated |
+
+### **`shortonboarding`**
+
+When `shortonboarding` is `true`, onboarding is: **Welcome** → **Which are you?** (team) → **Why do you want to eat cleaner?** → **What are you suffering from?** → **Symptom results** → **Lay’s chip question screen** (**Here’s why** → reveal better alternative) → **Give us a rating** → **final paywall**. The long questionnaire and other mid steps in the default path are omitted; **rating still runs immediately before the paywall** (same ending as the full v2 flow after summaries).
 
 ### **Step 4: Set Initial Configuration**
 Click **"Auto-ID"** for the document ID, then add:

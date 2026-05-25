@@ -91,6 +91,7 @@ data-processing/spotify_dataset.csv
 
 # API Keys
 LyricServices/Sources/LyricServices/APIKeys.swift
+functions/.secret.local
 
 # Large media files
 *.mp4

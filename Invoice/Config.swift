@@ -2,7 +2,7 @@ import Foundation
 
 enum Config {
     // MARK: - OpenAI Configuration
-    static let openAIApiKey: String = APIKeys.openAI
+    /// All OpenAI traffic goes through `openaiChatCompletion` (Firebase); no client-side API key.
     static let defaultModel = "gpt-4-turbo-preview"
     static let defaultMaxTokens = 500
     static let defaultTemperature = 0.7
@@ -93,6 +93,35 @@ enum Config {
             temperature: 0.8
         )
     ]
+
+    // MARK: - Subscription product identifiers (StoreKit)
+
+    /// Active SKUs wired in Xcode / App Store Connect (exactly three: weekly, standard annual, winback annual at its own price).
+    enum SubscriptionSKU {
+        static let weekly = "com.labely.ios.premium.weekly3"
+        static let annualStandard = "com.labely.ios.premium.annual3"
+        static let annualWinback = "com.labely.ios.premium.annual.winback3"
+
+        /// Product IDs loaded via `Product.products(for:)`.
+        static let storefrontProductIds: [String] = [
+            weekly,
+            annualStandard,
+            annualWinback
+        ]
+
+        /// Grandfather prior ASC products so restores / old subscriptions still unlock.
+        static let legacyEntitlementIDs: Set<String> = [
+            "com.labely.ios.premium.monthly2",
+            "com.labely.ios.premium.weekly2",
+            "com.labely.ios.premium.annual2",
+            "com.labely.ios.premium.annual.winback2"
+        ]
+
+        /// Any ID that grants active premium today.
+        static var entitlementProductIDs: Set<String> {
+            Set(storefrontProductIds).union(legacyEntitlementIDs)
+        }
+    }
 }
 
 struct ToolConfig {

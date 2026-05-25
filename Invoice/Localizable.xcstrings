@@ -26,6 +26,12 @@
         }
       }
     },
+    " for brand notes and example third-party reports." : {
+
+    },
+    " for details and brand report examples." : {
+
+    },
     " is a realistic target. It's not hard at all!" : {
       "localizations" : {
         "en" : {
@@ -48,13 +54,40 @@
         }
       }
     },
+    " lining." : {
+
+    },
     " products with ingredients linked to %@." : {
+
+    },
+    " take a single " : {
+
+    },
+    " to alter their score." : {
 
     },
     "—" : {
 
     },
+    "— /yr" : {
+
+    },
+    ",\nstudies show they lose\nabout " : {
+
+    },
+    ", while acrylamides from high-heat frying " : {
+
+    },
+    ". The ultra-processed oils are " : {
+
+    },
+    ".." : {
+
+    },
     ".5" : {
+
+    },
+    "·" : {
 
     },
     "\"Cal AI takes the guesswork out of nutrition. I can finally reach my fitness goals without spending hours tracking every meal. It's a game changer!\"" : {
@@ -107,6 +140,9 @@
 
     },
     "\"Labely shows what’s actually in the package before I buy. I finally feel like I’m dodging sketchy additives on purpose.\"" : {
+
+    },
+    "*because our food has changed.*" : {
 
     },
     "/" : {
@@ -169,8 +205,21 @@
         }
       }
     },
-    "%@ Health Grade" : {
+    "%@ /year" : {
 
+    },
+    "%@ /yr" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
     },
     "%@, we’ve already found " : {
 
@@ -406,6 +455,9 @@
           }
         }
       }
+    },
+    "%lld%% OFF" : {
+
     },
     "%lldg" : {
       "localizations" : {
@@ -682,6 +734,9 @@
         }
       }
     },
+    "+" : {
+
+    },
     "+ 1000 Cal AI users" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -777,10 +832,26 @@
         }
       }
     },
+    "⚠️" : {
+
+    },
+    "⚠️ %lld Open Food Facts %@. Tap " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "⚠️ %1$lld Open Food Facts %2$@. Tap "
+          }
+        }
+      }
+    },
     "✨" : {
 
     },
     "🌾" : {
+
+    },
+    "🌿" : {
 
     },
     "🍗" : {
@@ -810,9 +881,6 @@
     "💧" : {
 
     },
-    "📧 By email: help@labely.app" : {
-
-    },
     "📧 By email: helpthrifty@gmail.com" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -836,6 +904,9 @@
         }
       }
     },
+    "📧 By email: kalebrowland99@gmail.com" : {
+
+    },
     "🔥" : {
 
     },
@@ -849,15 +920,6 @@
 
     },
     "🛒" : {
-
-    },
-    "$39.99" : {
-
-    },
-    "$39.99 /year" : {
-
-    },
-    "$79.99" : {
 
     },
     "$79.99 /yearly" : {
@@ -882,6 +944,9 @@
           }
         }
       }
+    },
+    "0.000005 grams" : {
+
     },
     "1" : {
 
@@ -933,6 +998,18 @@
     "4.6" : {
 
     },
+    "4.9" : {
+
+    },
+    "4x higher\n" : {
+
+    },
+    "5 IQ points for\nlife.*" : {
+
+    },
+    "6x higher odds " : {
+
+    },
     "7 Days" : {
       "localizations" : {
         "en" : {
@@ -954,6 +1031,12 @@
           }
         }
       }
+    },
+    "7-DAY FREE TRIAL" : {
+
+    },
+    "16/100" : {
+
     },
     "18.5–24.9" : {
       "extractionState" : "stale",
@@ -1027,6 +1110,7 @@
       }
     },
     "50% OFF" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1072,6 +1156,9 @@
       }
     },
     "80% of Labely users maintain their weight" : {
+
+    },
+    "87/100" : {
 
     },
     "90% of users say that the change is obvious after using Cal AI and it is not easy to rebound." : {
@@ -1125,6 +1212,12 @@
           }
         }
       }
+    },
+    "91% of Labely users achieve their health goals within 6 months" : {
+
+    },
+    "100 money-back guarantee" : {
+
     },
     "account" : {
       "extractionState" : "manual",
@@ -1240,6 +1333,12 @@
         }
       }
     },
+    "Achieve your goals faster, naturally." : {
+
+    },
+    "Activating your safeguards:" : {
+
+    },
     "Active" : {
 
     },
@@ -1265,6 +1364,9 @@
           }
         }
       }
+    },
+    "Add onboardingvideo.mp4 to\nonboarding-material" : {
+
     },
     "Add to Diary" : {
       "localizations" : {
@@ -1332,6 +1434,9 @@
           }
         }
       }
+    },
+    "Additives (%@)" : {
+
     },
     "Additives Breakdown" : {
 
@@ -1700,6 +1805,9 @@
         }
       }
     },
+    "And it's destroying\nour bodies." : {
+
+    },
     "Annual subscription" : {
       "localizations" : {
         "en" : {
@@ -1744,6 +1852,9 @@
           }
         }
       }
+    },
+    "App Store" : {
+
     },
     "Application refers to any application or software program provided by the Company, including but not limited to thrifty.ai, and any other applications or software programs provided by the Company." : {
       "extractionState" : "stale",
@@ -1817,6 +1928,9 @@
         }
       }
     },
+    "At a glance" : {
+
+    },
     "At your goal by %@." : {
       "localizations" : {
         "en" : {
@@ -1864,6 +1978,12 @@
     "Avoid" : {
 
     },
+    "Avoiding bad ingredients\ncan be tough..." : {
+
+    },
+    "Back" : {
+
+    },
     "balanced_pace_text" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1887,6 +2007,9 @@
         }
       }
     },
+    "Barbecue Potato Chips" : {
+
+    },
     "Based on Cal AI's historical data, weight loss is usually delayed at first, but after 7 days, you can burn fat like crazy!" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1909,6 +2032,9 @@
           }
         }
       }
+    },
+    "Based on everything you told us..." : {
+
     },
     "Based on Labely's historical data, weight loss is usually delayed at first, but after 7 days, you can burn fat like crazy!" : {
 
@@ -1939,7 +2065,10 @@
     "Better Choice" : {
 
     },
-    "Billed $79.99 per year" : {
+    "Billed $29 per year" : {
+
+    },
+    "bloating" : {
 
     },
     "bmi_healthy" : {
@@ -2034,6 +2163,9 @@
         }
       }
     },
+    "Brand & safety report examples" : {
+
+    },
     "Brand reports" : {
 
     },
@@ -2044,6 +2176,9 @@
 
     },
     "Brand Trust Score" : {
+
+    },
+    "breast cancer" : {
 
     },
     "BROCCOLETTE" : {
@@ -2704,6 +2839,9 @@
         }
       }
     },
+    "Common industrial seed oils were detected in the ingredient text. Compare to products that use olive or avocado oil if you are avoiding these." : {
+
+    },
     "Company (referred to as either \"the Company\", \"We\", \"Us\" or \"Our\" in this Agreement) refers to Totally Science, 60 Heather Drive." : {
       "localizations" : {
         "en" : {
@@ -2725,6 +2863,12 @@
           }
         }
       }
+    },
+    "Compare full ingredient list" : {
+
+    },
+    "Complete" : {
+
     },
     "comply with our legal obligations (for example, if we are required to retain your data to comply with applicable laws)," : {
       "localizations" : {
@@ -3707,6 +3851,9 @@
     "Dismiss" : {
 
     },
+    "Do you believe you can\nalleviate your symptoms in\n90 days through clean eating?" : {
+
+    },
     "Do you currently work with a personal coach or nutritionist?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4079,6 +4226,9 @@
     "Examples often discussed in safety reporting:" : {
 
     },
+    "Excellent" : {
+
+    },
     "Explain %@" : {
 
     },
@@ -4175,6 +4325,12 @@
           }
         }
       }
+    },
+    "Feel better" : {
+
+    },
+    "Feel better fast. Labely is the\neasiest way to start" : {
+
     },
     "female" : {
       "extractionState" : "manual",
@@ -4570,6 +4726,12 @@
         }
       }
     },
+    "From Chaos to a Plan" : {
+
+    },
+    "Full breakdown" : {
+
+    },
     "gain_weight" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4706,6 +4868,9 @@
           }
         }
       }
+    },
+    "Get unlimited access" : {
+
     },
     "get_best_scan" : {
       "extractionState" : "manual",
@@ -4988,6 +5153,15 @@
         }
       }
     },
+    "hard to digest" : {
+
+    },
+    "have " : {
+
+    },
+    "have almost " : {
+
+    },
     "Have you tried other calorie tracking apps?" : {
       "localizations" : {
         "en" : {
@@ -5009,6 +5183,12 @@
           }
         }
       }
+    },
+    "Have you used other\nscanning apps before?" : {
+
+    },
+    "Healthier alternatives" : {
+
     },
     "healthy" : {
       "extractionState" : "manual",
@@ -5149,10 +5329,19 @@
         }
       }
     },
+    "here" : {
+
+    },
+    "Here's why" : {
+
+    },
     "High concern" : {
 
     },
     "High risk" : {
+
+    },
+    "High sodium content causes " : {
 
     },
     "Hold still" : {
@@ -5223,6 +5412,9 @@
         }
       }
     },
+    "How do these chips make you feel after eating them?" : {
+
+    },
     "How fast do you want to reach your goal?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5245,6 +5437,9 @@
           }
         }
       }
+    },
+    "How Labely helps you\nachieve lasting change" : {
+
     },
     "How many meals do you eat out per week?" : {
       "localizations" : {
@@ -5340,6 +5535,15 @@
         }
       }
     },
+    "I understand" : {
+
+    },
+    "I'm not sure" : {
+
+    },
+    "If a child's blood-lead\nconcentration creeps up\nby just " : {
+
+    },
     "If you have any questions about these Terms of Service, please contact us:" : {
       "localizations" : {
         "en" : {
@@ -5383,6 +5587,12 @@
           }
         }
       }
+    },
+    "If you're not aligned, then Labely may not be for you." : {
+
+    },
+    "Illustrative issues Labely tracks in the news and independent testing—shown for context, not as a claim that this exact product was involved." : {
+
     },
     "Imperial" : {
       "localizations" : {
@@ -5431,6 +5641,9 @@
           }
         }
       }
+    },
+    "Ingredients" : {
+
     },
     "Ingredients are identified" : {
       "localizations" : {
@@ -5614,6 +5827,9 @@
         }
       }
     },
+    "irritate your gut" : {
+
+    },
     "Just $12 per month (billed yearly)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5646,13 +5862,31 @@
     "Labely creates\nlong-term results" : {
 
     },
+    "Labely goes above\nand beyond other apps" : {
+
+    },
+    "Labely is for people who are committed to living healthier. We believe that food is medicine and that you can feel better by using cleaner products." : {
+
+    },
+    "Labely is your trusted guide\nfrom panic to plan" : {
+
+    },
     "Labely makes it easy and holds you accountable." : {
 
     },
     "Labely provides an AI-powered food product scanner that helps users understand ingredients, additives, processing levels, and safety information for consumer products." : {
 
     },
+    "Labely says" : {
+
+    },
+    "Labely was designed for\npeople like you" : {
+
+    },
     "Labely was made for\npeople like you" : {
+
+    },
+    "Labely’s analysis" : {
 
     },
     "Labely’s database has flagged over 900,000 products across 50+ countries." : {
@@ -5801,6 +6035,12 @@
     "Lawsuits & lab tests\n(tap one)" : {
 
     },
+    "Lay's" : {
+
+    },
+    "Learn more" : {
+
+    },
     "left" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5871,6 +6111,9 @@
       }
     },
     "Let's build your custom profile" : {
+
+    },
+    "Let's get started" : {
 
     },
     "Let's get started!" : {
@@ -5962,6 +6205,9 @@
         }
       }
     },
+    "Live cleaner." : {
+
+    },
     "loading" : {
       "comment" : "Loading indicator text",
       "extractionState" : "manual",
@@ -5987,6 +6233,9 @@
       }
     },
     "Loading analysis…" : {
+
+    },
+    "Loading price…" : {
 
     },
     "Loading product insights…" : {
@@ -6227,7 +6476,7 @@
         }
       }
     },
-    "Lowest price ever • $39.99" : {
+    "Lowest price ever • %@" : {
 
     },
     "lowest_price_ever" : {
@@ -6252,6 +6501,9 @@
           }
         }
       }
+    },
+    "Made with avocado oil rich in heart-healthy monounsaturated fats. These kettle cooked chips use non-GMO potatoes, providing a cleaner alternative with no inflammatory oils." : {
+
     },
     "maintain" : {
       "extractionState" : "manual",
@@ -6365,6 +6617,12 @@
           }
         }
       }
+    },
+    "Meet Your Personal Food Guardian" : {
+
+    },
+    "Men who eat the most\n" : {
+
     },
     "Metal Breakdown" : {
 
@@ -6487,10 +6745,19 @@
         }
       }
     },
+    "Names from Open Food Facts search in this category (availability varies by store and region)." : {
+
+    },
     "Natural" : {
 
     },
     "Natural vs processed" : {
+
+    },
+    "Needs work" : {
+
+    },
+    "NEVER" : {
 
     },
     "Next" : {
@@ -6563,6 +6830,9 @@
     "No additive detail returned—try a product with richer Open Food Facts data." : {
 
     },
+    "No additives found!" : {
+
+    },
     "No commitment, cancel anytime." : {
       "localizations" : {
         "en" : {
@@ -6588,6 +6858,12 @@
     "No matching U.S. FDA food enforcement reports returned for this search. That does not prove absence of issues—try the portals below or refine the brand name." : {
 
     },
+    "No obvious seed-oil signals were found in the ingredient text Labely parsed—but always read the full label." : {
+
+    },
+    "No payment due now" : {
+
+    },
     "No Payment Due Now" : {
       "localizations" : {
         "en" : {
@@ -6609,6 +6885,12 @@
           }
         }
       }
+    },
+    "No recalls listed for this barcode on Open Food Facts. Tap " : {
+
+    },
+    "No seed oils — avocado oil only." : {
+
     },
     "no_commitment" : {
       "extractionState" : "manual",
@@ -7093,6 +7375,15 @@
         }
       }
     },
+    "odds " : {
+
+    },
+    "of\nhaving " : {
+
+    },
+    "of developing\n" : {
+
+    },
     "of grocery food is ultra-processed" : {
 
     },
@@ -7144,6 +7435,9 @@
         }
       }
     },
+    "One family's story of hope" : {
+
+    },
     "ONE TIME OFFER" : {
       "localizations" : {
         "en" : {
@@ -7188,6 +7482,15 @@
           }
         }
       }
+    },
+    "Open Food Facts — recall tags" : {
+
+    },
+    "Open full additives breakdown" : {
+
+    },
+    "Open full Quick Overview" : {
+
     },
     "Or take a photo of the food label" : {
       "localizations" : {
@@ -7434,6 +7737,9 @@
         }
       }
     },
+    "penny from ANY brand" : {
+
+    },
     "percent_of_goal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7522,6 +7828,9 @@
           }
         }
       }
+    },
+    "Personalize my experience" : {
+
     },
     "Physical Information" : {
       "extractionState" : "stale",
@@ -7616,6 +7925,9 @@
           }
         }
       }
+    },
+    "Potatoes, Vegetable Oil (Canola, Corn, Soybean, and/or Sunflower Oil), and Salt." : {
+
     },
     "prediction_text" : {
       "extractionState" : "manual",
@@ -7712,6 +8024,9 @@
 
     },
     "Processed / additives" : {
+
+    },
+    "Processing level" : {
 
     },
     "Processing..." : {
@@ -7966,6 +8281,9 @@
           }
         }
       }
+    },
+    "Read more" : {
+
     },
     "Reading code from photo…" : {
 
@@ -8501,6 +8819,9 @@
         }
       }
     },
+    "Reveal better alternative" : {
+
+    },
     "Risk Score" : {
 
     },
@@ -8601,6 +8922,9 @@
           }
         }
       }
+    },
+    "Sea Salt Kettle Chips" : {
+
     },
     "Search brands..." : {
 
@@ -8737,6 +9061,9 @@
 
     },
     "See beyond the label" : {
+
+    },
+    "Seed oils (%@)" : {
 
     },
     "Select anything that applies." : {
@@ -8945,6 +9272,12 @@
         }
       }
     },
+    "Siete" : {
+
+    },
+    "Sign in" : {
+
+    },
     "Sign In" : {
       "localizations" : {
         "en" : {
@@ -9056,6 +9389,9 @@
           }
         }
       }
+    },
+    "Skip for now" : {
+
     },
     "slow" : {
       "extractionState" : "manual",
@@ -9171,6 +9507,9 @@
       }
     },
     "Start my 7-Day Free Trial" : {
+
+    },
+    "Start My Journey" : {
 
     },
     "Start your 3-Day FREE trial to continue." : {
@@ -9394,6 +9733,9 @@
     "Swap" : {
 
     },
+    "Take your health & well-being\nto the next level with Labely" : {
+
+    },
     "Takes a few seconds" : {
       "localizations" : {
         "en" : {
@@ -9485,6 +9827,9 @@
         }
       }
     },
+    "Terms" : {
+
+    },
     "Terms of Service" : {
       "localizations" : {
         "en" : {
@@ -9506,6 +9851,12 @@
           }
         }
       }
+    },
+    "Terms of use" : {
+
+    },
+    "testosterone\ndeficiency" : {
+
     },
     "Thank you for trusting us" : {
       "localizations" : {
@@ -9663,6 +10014,9 @@
         }
       }
     },
+    "The Labely Pledge:" : {
+
+    },
     "The security of Your Personal Data is important to Us..." : {
       "localizations" : {
         "en" : {
@@ -9706,6 +10060,9 @@
           }
         }
       }
+    },
+    "These tags come from the Open Food Facts database for this barcode—not a court docket." : {
+
     },
     "This helps us generate a plan for your calorie intake." : {
       "extractionState" : "stale",
@@ -9933,6 +10290,9 @@
           }
         }
       }
+    },
+    "thousands of downloads" : {
+
     },
     "Thrifty analyzes stitching, logos, and materials. We flag possible fakes automatically." : {
       "extractionState" : "stale",
@@ -10205,6 +10565,9 @@
         }
       }
     },
+    "Traditional Approach" : {
+
+    },
     "Transfer of Your Personal Data" : {
       "localizations" : {
         "en" : {
@@ -10347,11 +10710,12 @@
       }
     },
     "Try For $0.00" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try For $0.00"
+            "value" : "Try for $0.00"
           }
         },
         "es" : {
@@ -10369,6 +10733,9 @@
       }
     },
     "Try Labely" : {
+
+    },
+    "Try these instead" : {
 
     },
     "Try Thrifty" : {
@@ -10534,6 +10901,12 @@
         }
       }
     },
+    "Ultra-processed" : {
+
+    },
+    "ultra-processed foods\n" : {
+
+    },
     "unable_to_reach_database" : {
       "localizations" : {
         "en" : {
@@ -10624,6 +10997,15 @@
           }
         }
       }
+    },
+    "Unmute" : {
+
+    },
+    "Unmute and play video from the beginning" : {
+
+    },
+    "Unprocessed" : {
+
     },
     "Usage Data" : {
       "localizations" : {
@@ -10852,6 +11234,9 @@
         }
       }
     },
+    "water retention" : {
+
+    },
     "We also retain Usage Data for internal analysis purposes. Usage Data is generally retained for a shorter period, except when this data is used to strengthen the security or to improve the functionality of Our Service, or We are legally obligated to retain this data for longer periods." : {
       "localizations" : {
         "en" : {
@@ -10919,6 +11304,9 @@
       }
     },
     "We monitor lawsuits, lab tests & recalls for 500+ brands." : {
+
+    },
+    "We offer 7 days free so everyone can try Labely" : {
 
     },
     "We promise to always keep your personal information private and secure." : {
@@ -11036,7 +11424,10 @@
     "We want you to try\nLabely" : {
 
     },
-    "We want you to try\nLabely for free" : {
+    "We will " : {
+
+    },
+    "We'll personalize your experience" : {
 
     },
     "We’ll personalize your results and alerts." : {
@@ -11064,7 +11455,16 @@
         }
       }
     },
+    "We'll send you a reminder\nbefore your trial ends" : {
+
+    },
     "We’ll tune Labely to what matters most for them." : {
+
+    },
+    "We're setting everything up for you" : {
+
+    },
+    "Week" : {
 
     },
     "Weight" : {
@@ -11394,6 +11794,9 @@
         }
       }
     },
+    "What are you suffering from?" : {
+
+    },
     "What is your desired weight?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11719,6 +12122,9 @@
         }
       }
     },
+    "Which additives do you\nwant to avoid most?" : {
+
+    },
     "While using Our Service, We may ask You to provide Us with certain personally identifiable information..." : {
       "localizations" : {
         "en" : {
@@ -11742,6 +12148,9 @@
       }
     },
     "Who are you looking out for?" : {
+
+    },
+    "Why do you want to eat cleaner?" : {
 
     },
     "Win exclusive offers" : {
@@ -11795,19 +12204,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Winback Offer • $79.99"
+            "value" : "Winback Offer • $19"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oferta de recuperación • $79.99"
+            "value" : "Oferta de recuperación • $19"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Предложение отыгрыша • 79,99 долл. США"
+            "value" : "Предложение отыгрыша • $19"
           }
         }
       }
@@ -11836,6 +12245,9 @@
       }
     },
     "With\nLabely" : {
+
+    },
+    "With Labely" : {
 
     },
     "with_calai" : {
@@ -11910,6 +12322,9 @@
         }
       }
     },
+    "Women who eat the most\n" : {
+
+    },
     "work_with_coach_question" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11954,6 +12369,9 @@
           }
         }
       }
+    },
+    "Year" : {
+
     },
     "yearly" : {
       "extractionState" : "manual",
@@ -12045,6 +12463,9 @@
           }
         }
       }
+    },
+    "Yes, I'm ready!" : {
+
     },
     "You agree to use our Service responsibly and in accordance with these terms:" : {
       "localizations" : {
@@ -12226,6 +12647,9 @@
         }
       }
     },
+    "Your 30 days with Labely" : {
+
+    },
     "Your BMI" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -12314,6 +12738,15 @@
           }
         }
       }
+    },
+    "Your Goals" : {
+
+    },
+    "Your guardian is ready" : {
+
+    },
+    "YOUR HOLISTIC HEALTH SCORE" : {
+
     },
     "Your information, including Personal Data, may be transferred to — and maintained on — computers located outside of Your state, province, country or other governmental jurisdiction where the data protection laws may differ from those in Your jurisdiction." : {
       "localizations" : {

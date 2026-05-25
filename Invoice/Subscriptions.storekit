@@ -80,15 +80,10 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "69.99",
+          "displayPrice" : "29",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "F5B37C88",
-          "introductoryOffer" : {
-            "internalID" : "38AEA79B",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P7D"
-          },
+          "internalID" : "F5B37C92",
           "localizations" : [
             {
               "description" : "Full access to Labely ingredient scanning and safety intelligence",
@@ -96,7 +91,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.labely.ios.premium.annual2",
+          "productID" : "com.labely.ios.premium.annual3",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Labely Premium Annual",
           "subscriptionGroupID" : "409AF3F7",
@@ -112,25 +107,52 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "79.99",
+          "displayPrice" : "19",
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "F5B37C89",
-          "introductoryOffer" : {
-            "internalID" : "38AEA79C",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P7D"
-          },
           "localizations" : [
             {
               "description" : "Special one-time offer for Labely Premium",
-              "displayName" : "Labely Premium Annual (Special Offer)",
+              "displayName" : "Labely Premium Annual Winback",
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.labely.ios.premium.annual.winback2",
+          "productID" : "com.labely.ios.premium.annual.winback3",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Labely Premium Annual Winback",
+          "referenceName" : "Labely Premium Annual Winback (alternate price)",
+          "subscriptionGroupID" : "409AF3F7",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 3,
+          "internalID" : "F5B37C93",
+          "introductoryOffer" : {
+            "internalID" : "38AEA79D",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Weekly access to Labely ingredient scanning and safety intelligence",
+              "displayName" : "Labely Premium Weekly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.labely.ios.premium.weekly3",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Labely Premium Weekly",
           "subscriptionGroupID" : "409AF3F7",
           "type" : "RecurringSubscription",
           "winbackOffers" : [

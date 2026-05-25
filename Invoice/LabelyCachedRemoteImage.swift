@@ -76,3 +76,27 @@ struct LabelyCachedRemoteImage: View {
     }
 }
 
+/// Warms `LabelyImageMemoryCache` before views appear (scan results, home recents).
+enum LabelyPackImagePrefetch {
+    static func prefetch(url: URL?) async {
+        guard let url else { return }
+        let key = url as NSURL
+        if LabelyImageMemoryCache.shared.object(forKey: key) != nil { return }
+        var req = URLRequest(url: url)
+        req.cachePolicy = .returnCacheDataElseLoad
+        req.timeoutInterval = 25
+        req.setValue("image/avif,image/webp,image/apng,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        guard let (data, resp) = try? await URLSession.shared.data(for: req),
+              let http = resp as? HTTPURLResponse,
+              (200...299).contains(http.statusCode),
+              let img = UIImage(data: data), img.size.width > 8, img.size.height > 8 else { return }
+        LabelyImageMemoryCache.shared.setObject(img, forKey: key)
+    }
+
+    static func prefetch(urlString: String?) async {
+        guard let s = urlString?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty,
+              let url = URL(string: s) else { return }
+        await prefetch(url: url)
+    }
+}
+

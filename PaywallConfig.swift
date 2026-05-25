@@ -28,6 +28,12 @@ class PaywallConfigManager: NSObject, ObservableObject {
 
 // MARK: - Instructions for Firebase Remote Config (Future Implementation)
 /*
+ Paywall flags live in **Firestore** via `RemoteConfigManager` (ContentView.swift):
+ - Collection `app_config`, document `paywall_config`
+ - `hardpaywall` (bool) — hard vs soft paywall
+ - `twopaywall` (bool) — two-step “Unlimited Access” paywall on final onboarding step
+ - `shortonboarding` (bool) — abbreviated v2 flow: welcome → team → motivations → symptoms → symptom results → Lay's chip question ("How do these chips..." → here's why → reveal better alternative) → **rating** → final paywall
+
 To implement Firebase Remote Config in the future:
 
 1. Add Firebase Remote Config to your Xcode project:

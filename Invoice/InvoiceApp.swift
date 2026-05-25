@@ -64,6 +64,9 @@ struct InvoiceApp: App {
                 }
             }
             .environment(\.locale, Locale(identifier: "en"))
+            .task {
+                authManager.restorePersistedFirebaseSessionIfNeeded()
+            }
             .onOpenURL { url in
                 // Handle Google Sign In URL callback
                 GIDSignIn.sharedInstance.handle(url)
