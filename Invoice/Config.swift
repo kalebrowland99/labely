@@ -96,16 +96,19 @@ enum Config {
 
     // MARK: - Subscription product identifiers (StoreKit)
 
-    /// Active SKUs wired in Xcode / App Store Connect (exactly three: weekly, standard annual, winback annual at its own price).
+    /// Active SKUs wired in Xcode / App Store Connect (weekly, $29/yr annual, $79.99/yr annual for `twopaywall79`, winback annual).
     enum SubscriptionSKU {
         static let weekly = "com.labely.ios.premium.weekly3"
         static let annualStandard = "com.labely.ios.premium.annual3"
+        /// Shown and purchased on two-paywall when Firestore `twopaywall79` is true (must be $79.99 tier in ASC).
+        static let annualPremium79 = "com.labely.ios.premium.annual2"
         static let annualWinback = "com.labely.ios.premium.annual.winback3"
 
         /// Product IDs loaded via `Product.products(for:)`.
         static let storefrontProductIds: [String] = [
             weekly,
             annualStandard,
+            annualPremium79,
             annualWinback
         ]
 
@@ -113,7 +116,6 @@ enum Config {
         static let legacyEntitlementIDs: Set<String> = [
             "com.labely.ios.premium.monthly2",
             "com.labely.ios.premium.weekly2",
-            "com.labely.ios.premium.annual2",
             "com.labely.ios.premium.annual.winback2"
         ]
 

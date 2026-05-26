@@ -107,6 +107,33 @@
           "codeOffers" : [
 
           ],
+          "displayPrice" : "79.99",
+          "familyShareable" : false,
+          "groupNumber" : 4,
+          "internalID" : "F5B37C94",
+          "localizations" : [
+            {
+              "description" : "Full access to Labely ingredient scanning and safety intelligence",
+              "displayName" : "Labely Premium Annual ($79.99)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.labely.ios.premium.annual2",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Labely Premium Annual 79",
+          "subscriptionGroupID" : "409AF3F7",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
           "displayPrice" : "19",
           "familyShareable" : false,
           "groupNumber" : 2,

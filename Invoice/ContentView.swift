@@ -14157,10 +14157,13 @@ class RemoteConfigManager: NSObject, ObservableObject {
     @Published var twoPaywall: Bool = false
     /// When true: shortened v2 onboarding (welcome → team → motivations → symptoms → symptom results → impact/Lay’s sheet → paywall). Field key: `shortonboarding`.
     @Published var shortOnboarding: Bool = false
+    /// Two-paywall $79.99 tier: purchases `Config.SubscriptionSKU.annualPremium79` when `twopaywall` + this flag. Field key: `twopaywall79`.
+    @Published var twoPaywall79: Bool = false
     
     private let hardPaywallKey = "hardpaywall"
     private let twoPaywallKey = "twopaywall"
     private let shortOnboardingKey = "shortonboarding"
+    private let twoPaywall79Key = "twopaywall79"
     private let configCollection = "app_config"
     private var hasAttemptedLoad = false
     
@@ -14222,17 +14225,22 @@ class RemoteConfigManager: NSObject, ObservableObject {
                         self?.shortOnboarding = sh
                         print("✅ Config loaded - shortOnboarding: \(sh)")
                     }
+                    if let t79 = data[self?.twoPaywall79Key ?? ""] as? Bool {
+                        self?.twoPaywall79 = t79
+                        print("✅ Config loaded - twoPaywall79: \(t79)")
+                    }
                     // If neither field present but document exists
                     if (data[self?.hardPaywallKey ?? ""] as? Bool) == nil
                         && (data[self?.twoPaywallKey ?? ""] as? Bool) == nil
-                        && (data[self?.shortOnboardingKey ?? ""] as? Bool) == nil {
+                        && (data[self?.shortOnboardingKey ?? ""] as? Bool) == nil
+                        && (data[self?.twoPaywall79Key ?? ""] as? Bool) == nil {
                          print("ℹ️ Document exists but no known paywall booleans parsed; keeping defaults.")
                     }
                 } else {
                     print("ℹ️ No config found in Firestore, using default (hardPaywall: true)")
                     print("🔍 Document exists: \(document?.exists ?? false)")
                     print("🔍 Document path: \(self?.configCollection ?? "")/paywall_config")
-                    print("🔍 Expected fields: \(self?.hardPaywallKey ?? ""), \(self?.twoPaywallKey ?? ""), \(self?.shortOnboardingKey ?? "") (optional)")
+                    print("🔍 Expected fields: \(self?.hardPaywallKey ?? ""), \(self?.twoPaywallKey ?? ""), \(self?.shortOnboardingKey ?? ""), \(self?.twoPaywall79Key ?? "") (optional booleans)")
                     
                     if let data = document?.data() {
                         print("🔍 Document data: \(data)")
@@ -14249,6 +14257,7 @@ class RemoteConfigManager: NSObject, ObservableObject {
                     print("   4. Add field: hardpaywall (boolean) = true")
                     print("   5. Optional: twopaywall (boolean) — two-step Unlimited Access paywall")
                     print("   6. Optional: shortonboarding (boolean) — shortened onboarding (fewer slides → paywall)")
+                    print(#"   7. Optional: twopaywall79 (boolean) — two-paywall year purchases com.labely.ios.premium.annual2 ($79.99 marketing); ensure App Store Connect price matches"#)
                 }
             }
         }

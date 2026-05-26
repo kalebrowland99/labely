@@ -35,7 +35,12 @@ Your app now uses **Firebase Firestore** to control paywall behavior remotely. Y
 | `hardpaywall` | boolean | `true` | Controls paywall mode |
 | `twopaywall` | boolean | `false` | Two-plan paywall UI on final onboarding step |
 | `shortonboarding` | boolean | `false` | Short v2 onboarding (few slides, then paywall) |
+| `twopaywall79` | boolean | `false` | Two-paywall year plan uses **`com.labely.ios.premium.annual2`** ($79.99 marketing); requires ASC product + group setup |
 | `updatedAt` | timestamp | `serverTimestamp()` | Tracks when config was last updated |
+
+### **`twopaywall79`**
+
+Requires **`twopaywall: true`**. The onboarding two-plan paywall keeps the same layout; the **Year** row shows **$799.99** struck through, **$79.99/year**, **SAVE 90%**, and **~$1.54/week** breakdown. **`twopaywall79: true`** purchases **`com.labely.ios.premium.annual2`** (not `annual3`). Ensure that product exists and is priced at **$79.99** in App Store Connect.
 
 ### **`shortonboarding`**
 

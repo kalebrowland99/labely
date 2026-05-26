@@ -4187,9 +4187,8 @@ private struct OnboardingFinalPaywallView: View {
     /// Two-paywall layout (`twopaywall`): weekly + 3-day trial (`weeklyProduct`) vs annual no trial (`annualProduct`).
     @State private var catalogYearlyPlanSelected = true
 
-    /// Marketing numbers for row copy (should match ASC / Subscriptions.storekit).
+    /// Marketing weekly line on two-paywall (should match ASC / Subscriptions.storekit).
     private let twoPaywallWeeklyPriceWeekly: Double = 9.99
-    private let twoPaywallAnnualPrice: Double = 29
     private let paywallForestGreen = Color(red: 62 / 255, green: 102 / 255, blue: 65 / 255) // #3E6641
     private let paywallLightAccentGreen = Color(red: 141 / 255, green: 176 / 255, blue: 81 / 255) // #8DB051
     private let paywallGoldAccent = Color(red: 212 / 255, green: 175 / 255, blue: 55 / 255) // #D4AF37
@@ -4202,7 +4201,12 @@ private struct OnboardingFinalPaywallView: View {
     }
 
     private var annualProduct: Product? {
-        storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualStandard })
+        if remoteConfig.twoPaywall79 {
+            return storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualPremium79 })
+                ?? storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualStandard })
+                ?? storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualWinback })
+        }
+        return storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualStandard })
             ?? storeManager.subscriptions.first(where: { $0.id == Config.SubscriptionSKU.annualWinback })
     }
 
@@ -4236,7 +4240,12 @@ private struct OnboardingFinalPaywallView: View {
         }
         .onAppear {
             authManager.setPaywallScreenState(true)
-            MixpanelService.shared.trackQuestionViewed(questionTitle: remoteConfig.twoPaywall ? "Final paywall (two paywall)" : "Final paywall", stepNumber: 34)
+            MixpanelService.shared.trackQuestionViewed(
+                questionTitle: remoteConfig.twoPaywall
+                    ? (remoteConfig.twoPaywall79 ? "Final paywall (two paywall twopaywall79)" : "Final paywall (two paywall)")
+                    : "Final paywall",
+                stepNumber: 34
+            )
             MixpanelService.shared.trackSubscriptionViewed(planType: "onboarding_final_paywall")
             showContent = true
             if !remoteConfig.twoPaywall {
@@ -4341,17 +4350,35 @@ private struct OnboardingFinalPaywallView: View {
         }
     }
 
-    /// Pay reference layout: struck “list” yearly price vs your annual price on this marketing screen (matches reference mock).
-    private let twoPaywallYearStrikeReference = "$312.34"
+    /// Annual **marketing** amount for the struck-through “list vs offer” math when `twopaywall79` is off ($29 tier).
+    private static let twoPaywallAnnualMarketingPriceDefault: Double = 29
+    /// Annual **marketing** tier when Firestore `twopaywall79` is true — must match ASC for `com.labely.ios.premium.annual2`.
+    private static let twoPaywallAnnualMarketingPrice79: Double = 79.99
 
-    /// Reference-style SAVE capsule copy.
+    /// Struck-out reference list price for the $29 marketing tier (~SAVE 90% vs $312.34).
+    private static let twoPaywallYearStrikeReferenceDefault = "$312.34"
+    /// Struck-out reference list price for the $79.99 marketing tier (~SAVE 90% vs $799.99).
+    private static let twoPaywallYearStrikeReference79 = "$799.99"
+
+    /// Reference-style SAVE capsule (~90% vs strike for each tier).
     private let twoPaywallSavePercentDisplayed = "SAVE 90%"
 
-    /// Shown on the yearly row (informational marketing line; Checkout uses StoreKit).
-    private let twoPaywallAnnualMarketingLine = "$29/year"
+    /// Effective annual marketing price driving year-row copy (not necessarily `Product.displayPrice` until ASC matches).
+    private var twoPaywallAnnualMarketingPrice: Double {
+        remoteConfig.twoPaywall79 ? Self.twoPaywallAnnualMarketingPrice79 : Self.twoPaywallAnnualMarketingPriceDefault
+    }
+
+    private var twoPaywallYearStrikeReference: String {
+        remoteConfig.twoPaywall79 ? Self.twoPaywallYearStrikeReference79 : Self.twoPaywallYearStrikeReferenceDefault
+    }
+
+    /// Shown on the yearly row (marketing; StoreKit settles actual charge).
+    private var twoPaywallAnnualMarketingLine: String {
+        remoteConfig.twoPaywall79 ? "$79.99/year" : "$29/year"
+    }
 
     private var twoPaywallAnnualPerWeekMarketing: String {
-        String(format: "$%.2f/week", twoPaywallAnnualPrice / 52)
+        String(format: "$%.2f/week", twoPaywallAnnualMarketingPrice / 52)
     }
 
     private var twoPaywallWeeklySubtitleExact: String {
